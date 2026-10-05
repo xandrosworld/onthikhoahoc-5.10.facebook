@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import Icon from '@/components/Icon';
 
 /** Ô tải tệp lên (ảnh/PDF/video). Giá trị URL được đưa vào input hidden `name`. */
-export default function UploadField({ kind, name, nameLabel, defaultUrl = '', defaultName = '', label, hint, accept, onUploaded }) {
+export default function UploadField({ kind, name, nameLabel, defaultUrl = '', defaultName = '', label, hint, accept, onUploaded, maxSize, onBusyChange }) {
   const [url, setUrl] = useState(defaultUrl || '');
   const [fname, setFname] = useState(defaultName || '');
   const [busy, setBusy] = useState(false);
@@ -12,7 +12,10 @@ export default function UploadField({ kind, name, nameLabel, defaultUrl = '', de
 
   async function upload(file) {
     if (!file) return;
+    if (busy) return;
+    if (maxSize && file.size > maxSize) { setErr(`Tệp tối đa ${Math.round(maxSize / 1024 / 1024)}MB.`); return; }
     setErr(''); setBusy(true);
+    onBusyChange?.(true);
     const fd = new FormData();
     fd.append('file', file); fd.append('kind', kind);
     try {
@@ -23,6 +26,7 @@ export default function UploadField({ kind, name, nameLabel, defaultUrl = '', de
       onUploaded?.(data);
     } catch (e) { setErr(e.message); }
     setBusy(false);
+    onBusyChange?.(false);
     if (input.current) input.current.value = '';
   }
 
@@ -37,7 +41,7 @@ export default function UploadField({ kind, name, nameLabel, defaultUrl = '', de
           {kind !== 'IMAGE' && <span className="avatar" style={{ borderRadius: 8 }}><Icon name={kind === 'PDF' ? 'file' : 'play'} size={18} /></span>}
           <div style={{ flex: 1, minWidth: 0 }}><div className="cell-title small" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fname || url}</div><a className="xs" href={url} target="_blank" rel="noreferrer">Xem tệp</a></div>
           <button type="button" className="btn btn-sm" onClick={() => input.current?.click()} disabled={busy}>Thay</button>
-          <button type="button" className="btn btn-sm btn-danger-outline" onClick={() => { setUrl(''); setFname(''); onUploaded?.(null); }}>Xóa</button>
+          <button type="button" className="btn btn-sm btn-danger-outline" disabled={busy} onClick={() => { setUrl(''); setFname(''); onUploaded?.(null); }}>Xóa</button>
         </div>
       ) : (
         <div className="dropzone" role="button" tabIndex={0} onClick={() => input.current?.click()} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && input.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); upload(e.dataTransfer.files?.[0]); }}>

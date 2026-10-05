@@ -62,6 +62,7 @@ model Course {
   schedule    String
   tuition     String?
   coverUrl    String?
+  videoUrl    String?
   theme       String   @default("indigo")
   syllabus    String   @default("[]") // JSON: [{title, items: []}]
   teacherName String   @default("")

@@ -8,6 +8,7 @@ import { Prose, Rich } from '@/components/Rich';
 import { CourseCard } from '@/components/cards';
 import { parseJSON, initials } from '@/lib/utils';
 import { courseCover } from '@/lib/visuals';
+import VideoPlayer from '@/components/VideoPlayer';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,6 +44,8 @@ export default async function CourseDetail({ params }) {
         <div className="detail-layout">
           <div>
             <div className="card" style={{ overflow: 'hidden' }}><Cover url={courseCover(c)} theme={c.theme} seed={c.slug} label={c.title} /></div>
+
+            {c.videoUrl && <section className="mt-8" aria-labelledby="course-video-heading"><h2 id="course-video-heading">Video giới thiệu nội dung khóa học</h2><VideoPlayer url={c.videoUrl} title={`Video giới thiệu ${c.title}`} /></section>}
 
             <h2 className="mt-8">Giới thiệu khóa học</h2>
             <Prose text={c.description} />

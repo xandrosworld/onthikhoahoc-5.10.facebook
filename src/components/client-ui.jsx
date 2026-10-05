@@ -74,10 +74,10 @@ export function Modal({ open, onClose, title, icon = 'alert', tone = '', childre
 }
 
 /* ---------- Form helpers ---------- */
-export function SubmitButton({ children, className = 'btn btn-primary', pendingText = 'Đang xử lý…', ...rest }) {
+export function SubmitButton({ children, className = 'btn btn-primary', pendingText = 'Đang xử lý…', disabled = false, ...rest }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" className={className} disabled={pending} aria-busy={pending} {...rest}>
+    <button type="submit" className={className} disabled={pending || disabled} aria-busy={pending} {...rest}>
       {pending ? (<><span className="spinner" style={{ borderTopColor: 'currentColor', borderColor: 'rgba(128,128,128,.35)', borderTopWidth: 2 }} />{pendingText}</>) : children}
     </button>
   );

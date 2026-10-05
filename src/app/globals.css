@@ -535,6 +535,11 @@ table.table { width: 100%; border-collapse: collapse; font-size: .92rem; }
 .math-bar button:hover { background: var(--primary-50); border-color: var(--primary-500); }
 .math-preview { border: 1px dashed var(--n-300); border-radius: 8px; padding: 10px 14px; margin-top: 8px; background: var(--n-25); min-height: 44px; font-size: 1rem; }
 .math-preview .ph { color: var(--n-400); font-size: .85rem; }
+.math-attachments { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.math-attachments .spinner { width: 14px; height: 14px; border-width: 2px; }
+.exam-image { display: block; max-width: 100%; max-height: 460px; width: auto; height: auto; object-fit: contain; margin: 12px 0; border-radius: 6px; }
+.choice > span, .review-opt > span { min-width: 0; }
+.course-video-preview { margin-top: 16px; }
 .opt-edit { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px; }
 .opt-edit .badge-l { width: 32px; height: 44px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--n-600); flex: none; }
 .opt-edit .grow { flex: 1; min-width: 0; }

@@ -1,16 +1,19 @@
 'use client';
 import Link from 'next/link';
 import { useFormState } from 'react-dom';
+import { useState } from 'react';
 import { saveCourseAction } from '@/app/actions/admin';
 import { SubmitButton, Field, Switch } from '@/components/client-ui';
 import UploadField from '@/components/UploadField';
 import Icon from '@/components/Icon';
 import { THEME_KEYS } from '@/components/Cover';
+import CourseVideoField from '@/components/CourseVideoField';
 
 const THEME_NAMES = { indigo: 'Chàm', navy: 'Xanh navy', teal: 'Xanh ngọc', amber: 'Hổ phách', plum: 'Tím', slate: 'Xám' };
 
 export default function CourseForm({ course }) {
   const [state, action] = useFormState(saveCourseAction, null);
+  const [videoUploading, setVideoUploading] = useState(false);
   const e = state?.errors || {};
   const v = (k) => state?.values?.[k] ?? course?.[k] ?? '';
   const featured = state?.values ? state.values.featured === 'on' : course?.featured ?? false;
@@ -43,6 +46,10 @@ export default function CourseForm({ course }) {
             <Field id="theme" label="Màu ảnh mặc định"><select id="theme" name="theme" className="select" defaultValue={v('theme') || 'indigo'}>{THEME_KEYS.map((k) => <option key={k} value={k}>{THEME_NAMES[k]}</option>)}</select></Field>
           </div>
           <div className="card card-pad">
+            <h3>Video giới thiệu nội dung</h3>
+            <CourseVideoField defaultValue={v('videoUrl')} error={e.videoUrl} onBusyChange={setVideoUploading} />
+          </div>
+          <div className="card card-pad">
             <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
               <Field id="grade" label="Khối"><select id="grade" name="grade" className="select" defaultValue={v('grade') || '12'}><option>10</option><option>11</option><option>12</option></select></Field>
               <Field id="duration" label="Thời lượng" required error={e.duration}><input id="duration" name="duration" className="input" defaultValue={v('duration')} placeholder="24 buổi · 3 tháng" aria-invalid={!!e.duration} /></Field>
@@ -52,7 +59,7 @@ export default function CourseForm({ course }) {
           </div>
         </div>
       </div>
-      <div className="sticky-save"><SubmitButton><Icon name="save" size={18} />Lưu khóa học</SubmitButton><Link href="/admin/khoa-hoc" className="btn">Hủy</Link></div>
+      <div className="sticky-save"><SubmitButton disabled={videoUploading}><Icon name="save" size={18} />{videoUploading ? 'Đang tải video…' : 'Lưu khóa học'}</SubmitButton><Link href="/admin/khoa-hoc" className="btn">Hủy</Link></div>
     </form>
   );
 }

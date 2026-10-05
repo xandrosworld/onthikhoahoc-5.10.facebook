@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 import { slugify, parseSyllabusText } from '@/lib/utils';
 import { DEFAULT_SETTINGS } from '@/lib/site';
+import { validVideoUrl } from '@/lib/video';
 
 const S = (v) => String(v ?? '').trim();
 const okUrl = (u) => !u || /^(https?:\/\/|\/api\/files\/)/i.test(u);
@@ -27,6 +28,7 @@ export async function saveCourseAction(_prev, fd) {
     title: S(fd.get('title')), summary: S(fd.get('summary')), description: S(fd.get('description')),
     audience: S(fd.get('audience')), grade: S(fd.get('grade')) || '12', duration: S(fd.get('duration')), schedule: S(fd.get('schedule')),
     tuition: S(fd.get('tuition')) || null, coverUrl: S(fd.get('coverUrl')) || null, theme: S(fd.get('theme')) || 'indigo',
+    videoUrl: S(fd.get('videoUrl')) || null,
     teacherName: S(fd.get('teacherName')), teacherBio: S(fd.get('teacherBio')),
     featured: fd.get('featured') === 'on', status: S(fd.get('status')) === 'DRAFT' ? 'DRAFT' : 'PUBLISHED',
     syllabus: JSON.stringify(parseSyllabusText(S(fd.get('syllabus')))),
@@ -38,6 +40,7 @@ export async function saveCourseAction(_prev, fd) {
   if (!d.duration) errors.duration = 'Vui lòng nhập thời lượng.';
   if (!d.schedule) errors.schedule = 'Vui lòng nhập lịch học.';
   if (!okUrl(d.coverUrl)) errors.coverUrl = 'Đường dẫn ảnh không hợp lệ.';
+  if (!validVideoUrl(d.videoUrl)) errors.videoUrl = 'Dùng liên kết YouTube, Vimeo, video MP4/WEBM hoặc tệp video đã tải lên.';
   if (Object.keys(errors).length) return { errors, values: Object.fromEntries(fd.entries()) };
   if (id) await db.course.update({ where: { id }, data: d });
   else await db.course.create({ data: { ...d, slug: await uniqueSlug('course', d.title) } });

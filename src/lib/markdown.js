@@ -28,11 +28,33 @@ export function splitMath(text) {
   return out;
 }
 
-/** Văn bản thường (đề thi) + công thức → HTML an toàn. Xuống dòng được giữ nguyên. */
-export function renderRichInline(text) {
+function richText(text) {
   return splitMath(text)
     .map((p) => (p.t === 'text' ? esc(p.v).replace(/\n/g, '<br/>') : p.t === 'block' ? `<div class="math-block">${renderMath(p.v, true)}</div>` : renderMath(p.v, false)))
     .join('');
+}
+
+function imageUrl(value) {
+  const url = String(value).trim();
+  if (/[\\\u0000-\u001f\u007f]/.test(url)) return '';
+  if (url.startsWith('/') && !url.startsWith('//')) return url;
+  try { const parsed = new URL(url); return ['https:', 'http:'].includes(parsed.protocol) ? parsed.href : ''; } catch { return ''; }
+}
+
+/** Văn bản đề thi + công thức + ảnh Markdown. HTML thô luôn được escape. */
+export function renderRichInline(text) {
+  const source = String(text ?? '');
+  const images = /!\[([^\]\n]*)\]\(([^)\s]+)\)/g;
+  const output = [];
+  let last = 0;
+  for (const match of source.matchAll(images)) {
+    output.push(richText(source.slice(last, match.index)));
+    const url = imageUrl(match[2]);
+    output.push(url ? `<img class="exam-image" src="${esc(url)}" alt="${esc(match[1])}" loading="lazy" decoding="async"/>` : richText(match[0]));
+    last = match.index + match[0].length;
+  }
+  output.push(richText(source.slice(last)));
+  return output.join('');
 }
 
 const safeUrl = (u) => (/^(https?:\/\/|\/|mailto:)/i.test(u) ? u : '#');

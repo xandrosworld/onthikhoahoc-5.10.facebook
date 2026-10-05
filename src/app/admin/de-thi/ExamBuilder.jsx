@@ -60,6 +60,14 @@ export default function ExamBuilder({ initial, attemptCount }) {
   const [open, setOpen] = useState({});
   const [previewQ, setPreviewQ] = useState({});
   const [saving, setSaving] = useState(false);
+  const [imageUploads, setImageUploads] = useState(() => new Set());
+  const trackImageUpload = useCallback((id, busy) => setImageUploads(previous => {
+    if (previous.has(id) === busy) return previous;
+    const next = new Set(previous);
+    if (busy) next.add(id); else next.delete(id);
+    return next;
+  }), []);
+  const hasImageUploads = imageUploads.size > 0;
   const [error, setError] = useState('');
   const [dirty, setDirty] = useState(false);
   const [draftBanner, setDraftBanner] = useState(null);
@@ -122,6 +130,7 @@ export default function ExamBuilder({ initial, attemptCount }) {
   }
 
   async function save(publishOverride) {
+    if (hasImageUploads) { setError('Chờ ảnh tải lên xong trước khi lưu đề thi.'); return; }
     setError('');
     setSaving(true);
     const status = publishOverride === true ? 'PUBLISHED' : publishOverride === false ? 'DRAFT' : exam.status;
@@ -140,16 +149,16 @@ export default function ExamBuilder({ initial, attemptCount }) {
     setSaving(false);
   }
 
-  const toggle = (k) => setOpen((o) => ({ ...o, [k]: !o[k] }));
+  const toggle = (k) => { if (!hasImageUploads) setOpen((o) => ({ ...o, [k]: !o[k] })); };
 
   return (
     <>
       <div className="page-title">
         <div><h1>{initial.id ? 'Sửa đề thi' : 'Tạo đề thi mới'}</h1><p>Soạn đề trực tiếp theo 3 phần cố định. Gõ công thức bằng LaTeX trong dấu <code>$ … $</code>.</p></div>
         <div className="row wrap">
-          <button className="btn" onClick={() => setFullPreview(true)} disabled={!total}><Icon name="eye" size={18} />Xem thử đề</button>
-          <button className="btn" onClick={() => save()} disabled={saving}><Icon name="save" size={18} />{saving ? 'Đang lưu…' : 'Lưu'}</button>
-          <button className="btn btn-primary" onClick={() => save(true)} disabled={saving}>Lưu & công bố</button>
+          <button className="btn" onClick={() => setFullPreview(true)} disabled={!total || hasImageUploads}><Icon name="eye" size={18} />Xem thử đề</button>
+          <button className="btn" onClick={() => save()} disabled={saving || hasImageUploads}><Icon name="save" size={18} />{saving ? 'Đang lưu…' : hasImageUploads ? 'Đang tải ảnh…' : 'Lưu'}</button>
+          <button className="btn btn-primary" onClick={() => save(true)} disabled={saving || hasImageUploads}>Lưu & công bố</button>
         </div>
       </div>
 
@@ -204,7 +213,7 @@ export default function ExamBuilder({ initial, attemptCount }) {
                             <div className="card card-pad" style={{ boxShadow: 'none', background: 'var(--n-25)' }}><QuestionPreview type={type} q={q} no={i + 1} /></div>
                           ) : (
                             <>
-                              <div className="field"><MathField id={`c-${q.k}`} label="Nội dung câu hỏi" value={q.content} onChange={(v) => setQ(type, i, { content: v })} rows={3} placeholder="Ví dụ: Cho hàm số $f(x)=x^3-3x+2$. Giá trị cực đại của hàm số là" /></div>
+                              <div className="field"><MathField id={`c-${q.k}`} label="Nội dung câu hỏi" value={q.content} onChange={(v) => setQ(type, i, { content: v })} onUploadStateChange={trackImageUpload} rows={3} placeholder="Ví dụ: Cho hàm số $f(x)=x^3-3x+2$. Giá trị cực đại của hàm số là" /></div>
 
                               {type === 'MULTIPLE_CHOICE' && (
                                 <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
@@ -212,7 +221,7 @@ export default function ExamBuilder({ initial, attemptCount }) {
                                   {q.options.map((o, k) => (
                                     <div key={k} className="opt-edit">
                                       <span className="badge-l">{'ABCD'[k]}.</span>
-                                      <div className="grow"><MathField id={`o-${q.k}-${k}`} label={`Phương án ${'ABCD'[k]}`} hideLabel multiline={false} compact value={o.content} onChange={(v) => setQ(type, i, { options: q.options.map((x, j) => (j === k ? { ...x, content: v } : x)) })} placeholder={`Nội dung phương án ${'ABCD'[k]}`} /></div>
+                                      <div className="grow"><MathField id={`o-${q.k}-${k}`} label={`Phương án ${'ABCD'[k]}`} hideLabel multiline={false} compact value={o.content} onChange={(v) => setQ(type, i, { options: q.options.map((x, j) => (j === k ? { ...x, content: v } : x)) })} onUploadStateChange={trackImageUpload} placeholder={`Nội dung phương án ${'ABCD'[k]}`} /></div>
                                       <label className="radio-correct"><input type="radio" name={`correct-${q.k}`} checked={o.isCorrect} onChange={() => setQ(type, i, { options: q.options.map((x, j) => ({ ...x, isCorrect: j === k })) })} />Đáp án đúng</label>
                                     </div>
                                   ))}
@@ -225,7 +234,7 @@ export default function ExamBuilder({ initial, attemptCount }) {
                                   {q.statements.map((s, k) => (
                                     <div key={k} className="opt-edit">
                                       <span className="badge-l">{'abcd'[k]})</span>
-                                      <div className="grow"><MathField id={`s-${q.k}-${k}`} label={`Mệnh đề ${'abcd'[k]}`} hideLabel multiline={false} compact value={s.content} onChange={(v) => setQ(type, i, { statements: q.statements.map((x, j) => (j === k ? { ...x, content: v } : x)) })} placeholder={`Nội dung mệnh đề ${'abcd'[k]}`} /></div>
+                                      <div className="grow"><MathField id={`s-${q.k}-${k}`} label={`Mệnh đề ${'abcd'[k]}`} hideLabel multiline={false} compact value={s.content} onChange={(v) => setQ(type, i, { statements: q.statements.map((x, j) => (j === k ? { ...x, content: v } : x)) })} onUploadStateChange={trackImageUpload} placeholder={`Nội dung mệnh đề ${'abcd'[k]}`} /></div>
                                       <div className="seg" role="group" aria-label={`Đáp án mệnh đề ${'abcd'[k]}`}>
                                         <button type="button" className={s.isTrue ? 'on-t' : ''} aria-pressed={s.isTrue} onClick={() => setQ(type, i, { statements: q.statements.map((x, j) => (j === k ? { ...x, isTrue: true } : x)) })}>Đúng</button>
                                         <button type="button" className={!s.isTrue ? 'on-f' : ''} aria-pressed={!s.isTrue} onClick={() => setQ(type, i, { statements: q.statements.map((x, j) => (j === k ? { ...x, isTrue: false } : x)) })}>Sai</button>
@@ -255,7 +264,7 @@ export default function ExamBuilder({ initial, attemptCount }) {
                               )}
 
                               <div className="field" style={{ marginTop: 8, marginBottom: 0 }}>
-                                <MathField id={`e-${q.k}`} label="Lời giải / giải thích (không bắt buộc, hiển thị sau khi nộp)" value={q.explanation} onChange={(v) => setQ(type, i, { explanation: v })} rows={2} compact />
+                                <MathField id={`e-${q.k}`} label="Lời giải / giải thích (không bắt buộc, hiển thị sau khi nộp)" value={q.explanation} onChange={(v) => setQ(type, i, { explanation: v })} onUploadStateChange={trackImageUpload} rows={2} compact />
                               </div>
                             </>
                           )}
@@ -307,9 +316,9 @@ export default function ExamBuilder({ initial, attemptCount }) {
       </div>
 
       <div className="sticky-save">
-        <button className="btn" onClick={() => save()} disabled={saving}><Icon name="save" size={18} />{saving ? 'Đang lưu…' : 'Lưu đề thi'}</button>
-        <button className="btn btn-primary" onClick={() => save(true)} disabled={saving}>Lưu & công bố</button>
-        {exam.status === 'PUBLISHED' && <button className="btn btn-ghost" onClick={() => save(false)} disabled={saving}>Lưu & hủy công bố</button>}
+        <button className="btn" onClick={() => save()} disabled={saving || hasImageUploads}><Icon name="save" size={18} />{saving ? 'Đang lưu…' : hasImageUploads ? 'Đang tải ảnh…' : 'Lưu đề thi'}</button>
+        <button className="btn btn-primary" onClick={() => save(true)} disabled={saving || hasImageUploads}>Lưu & công bố</button>
+        {exam.status === 'PUBLISHED' && <button className="btn btn-ghost" onClick={() => save(false)} disabled={saving || hasImageUploads}>Lưu & hủy công bố</button>}
         <span className="spacer" />
         <span className="small muted">{dirty ? 'Chưa lưu · bản nháp được giữ tự động trên trình duyệt' : 'Đã lưu'}</span>
       </div>
