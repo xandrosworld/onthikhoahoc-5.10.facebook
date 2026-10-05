@@ -10,6 +10,7 @@ import { fmtDate } from '@/lib/utils';
 export const metadata = { title: 'Luyện thi' };
 
 export default async function PracticeList({ searchParams }) {
+  searchParams = await searchParams;
   const user = await requireUser('/hoc-sinh/luyen-thi');
   const grade = searchParams?.khoi || '';
   const [exams, attempts] = await Promise.all([

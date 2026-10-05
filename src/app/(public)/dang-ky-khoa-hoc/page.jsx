@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Đăng ký khóa học' };
 
 export default async function Page({ searchParams }) {
+  searchParams = await searchParams;
   const [courses, user, s] = await Promise.all([
     db.course.findMany({ where: { status: 'PUBLISHED' }, orderBy: { createdAt: 'asc' }, select: { id: true, title: true, slug: true } }),
     getUser(),

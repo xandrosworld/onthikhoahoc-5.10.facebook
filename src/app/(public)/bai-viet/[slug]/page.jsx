@@ -16,11 +16,13 @@ async function getPost(slug) {
 }
 
 export async function generateMetadata({ params }) {
+  params = await params;
   const p = await getPost(params.slug);
   return { title: p?.title || 'Bài viết', description: p?.excerpt };
 }
 
 export default async function PostDetail({ params }) {
+  params = await params;
   const p = await getPost(params.slug);
   if (!p) notFound();
   const related = await db.post.findMany({ where: { status: 'PUBLISHED', id: { not: p.id } }, orderBy: { publishedAt: 'desc' }, take: 3 });

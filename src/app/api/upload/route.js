@@ -4,10 +4,11 @@ import path from 'path';
 import crypto from 'crypto';
 import { apiUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { uploadDirectory } from '@/lib/uploads';
 
 export const runtime = 'nodejs';
 
-const UPLOAD_DIR = () => path.resolve(process.env.UPLOAD_DIR || './uploads');
+const UPLOAD_DIR = uploadDirectory;
 
 const RULES = {
   IMAGE: { max: 5 * 1024 * 1024, mimes: { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' }, label: 'Ảnh (JPG, PNG, WEBP, GIF) tối đa 5MB' },

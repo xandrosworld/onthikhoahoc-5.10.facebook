@@ -14,7 +14,7 @@ export async function createSession(user) {
     .setIssuedAt()
     .setExpirationTime(`${MAX_AGE}s`)
     .sign(secret());
-  cookies().set(COOKIE, token, {
+  (await cookies()).set(COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production' && (process.env.SITE_URL || '').startsWith('https'),
@@ -23,12 +23,12 @@ export async function createSession(user) {
   });
 }
 
-export function destroySession() {
-  cookies().set(COOKIE, '', { path: '/', maxAge: 0 });
+export async function destroySession() {
+  (await cookies()).set(COOKIE, '', { path: '/', maxAge: 0 });
 }
 
 export async function getUser() {
-  const token = cookies().get(COOKIE)?.value;
+  const token = (await cookies()).get(COOKIE)?.value;
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret());

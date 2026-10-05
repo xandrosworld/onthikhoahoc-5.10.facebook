@@ -9,6 +9,7 @@ import { fmtDateTime, REG_STATUS } from '@/lib/utils';
 export const metadata = { title: 'Đăng ký khóa học' };
 
 export default async function AdminRegistrations({ searchParams }) {
+  searchParams = await searchParams;
   const q = (searchParams?.q || '').trim();
   const khoa = searchParams?.khoa || '';
   const st = REG_STATUS[searchParams?.tt] ? searchParams.tt : '';

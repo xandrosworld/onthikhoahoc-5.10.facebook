@@ -9,6 +9,7 @@ import { deleteCourseAction, toggleCourseAction } from '@/app/actions/admin';
 export const metadata = { title: 'Quản lý khóa học' };
 
 export default async function AdminCourses({ searchParams }) {
+  searchParams = await searchParams;
   const courses = await db.course.findMany({ orderBy: { createdAt: 'asc' }, include: { _count: { select: { registrations: true } } } });
   return (
     <>

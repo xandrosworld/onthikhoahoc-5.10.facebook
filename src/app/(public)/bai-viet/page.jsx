@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Tài liệu & Bài viết' };
 
 export default async function PostsPage({ searchParams }) {
+  searchParams = await searchParams;
   const cat = CATEGORY_LABEL[searchParams?.loai] ? searchParams.loai : '';
   const q = (searchParams?.q || '').trim();
   const { page, skip, take, pageSize } = paginate(searchParams, 9);

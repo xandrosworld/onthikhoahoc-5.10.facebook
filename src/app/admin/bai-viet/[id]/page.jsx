@@ -6,6 +6,7 @@ import PostForm from '../PostForm';
 export const metadata = { title: 'Sửa bài viết' };
 
 export default async function EditPost({ params }) {
+  params = await params;
   const p = await db.post.findUnique({ where: { id: params.id } });
   if (!p) notFound();
   return (

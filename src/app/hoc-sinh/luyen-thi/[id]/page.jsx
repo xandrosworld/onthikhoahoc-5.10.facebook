@@ -11,6 +11,8 @@ import { SECTION_META, fmtDate, fmtDuration } from '@/lib/utils';
 export const metadata = { title: 'Chi tiết đề thi' };
 
 export default async function ExamIntro({ params, searchParams }) {
+  params = await params;
+  searchParams = await searchParams;
   const user = await requireUser(`/hoc-sinh/luyen-thi/${params.id}`);
   const exam = await db.exam.findFirst({
     where: { id: params.id, status: 'PUBLISHED' },

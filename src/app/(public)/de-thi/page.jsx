@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Luyện thi trực tuyến' };
 
 export default async function PublicExams({ searchParams }) {
+  searchParams = await searchParams;
   const grade = searchParams?.khoi || '';
   const user = await getUser();
   const exams = await db.exam.findMany({

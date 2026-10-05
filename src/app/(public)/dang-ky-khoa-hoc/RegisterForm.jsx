@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { registerCourseAction } from '@/app/actions/public';
 import { SubmitButton, Field } from '@/components/client-ui';
 import Icon from '@/components/Icon';
-import { GRADES } from '@/lib/site';
+import { GRADES } from '@/lib/constants';
 
 export default function RegisterForm({ courses, preselect, user }) {
   const [state, action] = useFormState(registerCourseAction, null);

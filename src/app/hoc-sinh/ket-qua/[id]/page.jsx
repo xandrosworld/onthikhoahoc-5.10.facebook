@@ -11,6 +11,8 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Kết quả bài thi' };
 
 export default async function ResultPage({ params, searchParams }) {
+  params = await params;
+  searchParams = await searchParams;
   const user = await requireUser(`/hoc-sinh/ket-qua/${params.id}`);
   const a = await db.examAttempt.findUnique({ where: { id: params.id } });
   if (!a || (a.userId !== user.id && user.role !== 'ADMIN')) notFound();

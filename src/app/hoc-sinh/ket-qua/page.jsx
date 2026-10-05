@@ -7,6 +7,7 @@ import { fmtDateTime, fmtDuration } from '@/lib/utils';
 export const metadata = { title: 'Kết quả của tôi' };
 
 export default async function MyResults({ searchParams }) {
+  searchParams = await searchParams;
   const user = await requireUser('/hoc-sinh/ket-qua');
   const { page, skip, take, pageSize } = paginate(searchParams, 10);
   const where = { userId: user.id, result: { isNot: null } };

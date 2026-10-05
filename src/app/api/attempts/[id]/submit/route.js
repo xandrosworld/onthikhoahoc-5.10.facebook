@@ -6,6 +6,7 @@ import { finalizeAttempt } from '@/lib/attempts';
 export const runtime = 'nodejs';
 
 export async function POST(req, { params }) {
+  params = await params;
   const user = await apiUser();
   if (!user) return NextResponse.json({ error: 'Phiên đăng nhập đã hết hạn.' }, { status: 401 });
   const attempt = await db.examAttempt.findUnique({ where: { id: params.id } });

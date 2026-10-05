@@ -9,6 +9,7 @@ import { fmtDate, fmtDateTime, fmtDuration, fmtScore, initials } from '@/lib/uti
 export const metadata = { title: 'Chi tiết học sinh' };
 
 export default async function StudentDetail({ params }) {
+  params = await params;
   const u = await db.user.findFirst({ where: { id: params.id, role: 'STUDENT' }, include: { profile: true, attempts: { orderBy: { startedAt: 'desc' }, include: { exam: true, result: true } }, registrations: { include: { course: true }, orderBy: { createdAt: 'desc' } } } });
   if (!u) notFound();
   const done = u.attempts.filter((a) => a.result);

@@ -10,6 +10,7 @@ import { countByType } from '@/components/cards';
 export const metadata = { title: 'Tổng quan' };
 
 export default async function StudentHome({ searchParams }) {
+  searchParams = await searchParams;
   const user = await requireUser();
   const [exams, attempts] = await Promise.all([
     db.exam.findMany({ where: { status: 'PUBLISHED' }, orderBy: { createdAt: 'desc' }, include: { sections: { include: { _count: { select: { questions: true } } } } } }),

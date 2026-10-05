@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Chi tiết lượt thi' };
 
 export default async function AdminAttempt({ params }) {
+  params = await params;
   const a = await db.examAttempt.findUnique({ where: { id: params.id } });
   if (!a) notFound();
   if (a.status === 'IN_PROGRESS' && a.deadlineAt.getTime() <= Date.now()) await finalizeAttempt(a.id, { auto: true });

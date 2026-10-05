@@ -10,6 +10,7 @@ import { CATEGORY_LABEL, fmtDate } from '@/lib/utils';
 export const metadata = { title: 'Quản lý bài viết' };
 
 export default async function AdminPosts({ searchParams }) {
+  searchParams = await searchParams;
   const q = (searchParams?.q || '').trim();
   const cat = CATEGORY_LABEL[searchParams?.loai] ? searchParams.loai : '';
   const where = { ...(q ? { title: { contains: q } } : {}), ...(cat ? { category: cat } : {}) };

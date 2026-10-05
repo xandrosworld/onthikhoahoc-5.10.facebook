@@ -3,7 +3,7 @@ import { useFormState } from 'react-dom';
 import { updateProfileAction, changePasswordAction } from '@/app/actions/auth';
 import { SubmitButton, Field, PasswordInput } from '@/components/client-ui';
 import Icon from '@/components/Icon';
-import { GRADES } from '@/lib/site';
+import { GRADES } from '@/lib/constants';
 
 export default function AccountForms({ user }) {
   const [ps, pa] = useFormState(updateProfileAction, null);

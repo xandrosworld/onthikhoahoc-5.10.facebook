@@ -70,7 +70,7 @@ export async function loginAction(_prev, fd) {
 }
 
 export async function logoutAction() {
-  destroySession();
+  await destroySession();
   redirect('/');
 }
 

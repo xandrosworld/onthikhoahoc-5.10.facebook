@@ -9,6 +9,7 @@ import { fmtDate } from '@/lib/utils';
 export const metadata = { title: 'Quản lý học sinh' };
 
 export default async function AdminStudents({ searchParams }) {
+  searchParams = await searchParams;
   const q = (searchParams?.q || '').trim();
   const st = ['ACTIVE', 'LOCKED'].includes(searchParams?.tt) ? searchParams.tt : '';
   const where = { role: 'STUDENT', ...(st ? { status: st } : {}), ...(q ? { OR: [{ fullName: { contains: q } }, { email: { contains: q } }, { phone: { contains: q } }] } : {}) };

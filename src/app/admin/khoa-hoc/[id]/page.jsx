@@ -7,6 +7,7 @@ import CourseForm from '../CourseForm';
 export const metadata = { title: 'Sửa khóa học' };
 
 export default async function EditCourse({ params }) {
+  params = await params;
   const c = await db.course.findUnique({ where: { id: params.id } });
   if (!c) notFound();
   return (

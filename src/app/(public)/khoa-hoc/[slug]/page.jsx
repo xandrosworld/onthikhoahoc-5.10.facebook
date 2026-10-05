@@ -15,11 +15,13 @@ async function getCourse(slug) {
 }
 
 export async function generateMetadata({ params }) {
+  params = await params;
   const c = await getCourse(params.slug);
   return { title: c ? c.title : 'Khóa học', description: c?.summary };
 }
 
 export default async function CourseDetail({ params }) {
+  params = await params;
   const c = await getCourse(params.slug);
   if (!c) notFound();
   const syllabus = parseJSON(c.syllabus, []);

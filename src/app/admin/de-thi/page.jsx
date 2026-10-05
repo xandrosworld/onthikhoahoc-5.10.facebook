@@ -10,6 +10,7 @@ import { fmtDate } from '@/lib/utils';
 export const metadata = { title: 'Quản lý đề thi' };
 
 export default async function AdminExams({ searchParams }) {
+  searchParams = await searchParams;
   const q = (searchParams?.q || '').trim();
   const where = q ? { title: { contains: q } } : {};
   const { page, skip, take, pageSize } = paginate(searchParams, 10);

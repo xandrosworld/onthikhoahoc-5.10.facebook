@@ -6,6 +6,7 @@ import { fmtDateTime, fmtDuration } from '@/lib/utils';
 export const metadata = { title: 'Kết quả thi' };
 
 export default async function AdminResults({ searchParams }) {
+  searchParams = await searchParams;
   const q = (searchParams?.q || '').trim();
   const de = searchParams?.de || '';
   const hs = searchParams?.hs || '';

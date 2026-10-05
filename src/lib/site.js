@@ -22,4 +22,4 @@ export async function getSettings() {
   }
 }
 
-export const GRADES = ['10', '11', '12', 'Đã tốt nghiệp'];
+export { GRADES } from './constants';

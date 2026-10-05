@@ -26,6 +26,7 @@ function toState(exam) {
 }
 
 export default async function EditExam({ params }) {
+  params = await params;
   const exam = await db.exam.findUnique({ where: { id: params.id }, include: examInclude });
   if (!exam) notFound();
   const attempts = await db.examAttempt.count({ where: { examId: exam.id } });

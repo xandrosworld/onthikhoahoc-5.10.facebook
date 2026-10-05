@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Làm bài thi', robots: { index: false } };
 
 export default async function TakeExam({ params }) {
+  params = await params;
   const user = await requireUser(`/lam-bai/${params.attemptId}`);
   const data = await loadAttemptForTaking(params.attemptId);
   if (!data || data.attempt.userId !== user.id) notFound();

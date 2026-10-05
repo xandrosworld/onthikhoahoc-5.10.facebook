@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Khóa học Toán 10, 11, 12 & luyện thi THPT' };
 
 export default async function CoursesPage({ searchParams }) {
+  searchParams = await searchParams;
   const grade = searchParams?.khoi || '';
   const courses = await db.course.findMany({
     where: { status: 'PUBLISHED', ...(grade ? { grade } : {}) },
