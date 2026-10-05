@@ -112,7 +112,15 @@
 .public-site .page-hero { background: var(--surface-soft); border-color: var(--line); }
 .public-site .page-hero p { color: var(--ink-muted); }
 @media (prefers-color-scheme: dark) {
-  .public-site { --surface: #111a2b; --surface-soft: #172238; --surface-card: #1a263d; --ink: #eef2fa; --ink-muted: #b3c0d5; --line: #34445f; --brand: #b5c5ff; }
+  .public-site {
+    --surface: #111a2b; --surface-soft: #172238; --surface-card: #1a263d;
+    --ink: #eef2fa; --ink-muted: #b3c0d5; --line: #34445f; --brand: #b5c5ff;
+    --n-0: #111a2b; --n-25: #1a263d; --n-50: #172238; --n-100: #26344c;
+    --n-200: #34445f; --n-300: #5d6d88; --n-400: #91a1b9; --n-500: #b3c0d5;
+    --n-600: #bcc8db; --n-700: #d4ddee; --n-800: #eef2fa; --n-900: #eef2fa;
+    --primary-50: #263958; --primary-100: #33435f; --primary-200: #526b9d;
+    --primary-500: #8eabf8; --primary-600: #bac9ff; --primary-700: #b5c5ff; --primary-800: #d5dfff;
+  }
   .public-site .nav a[aria-current="page"] { background: #263753; color: #c5d2ff; }
   .public-site .btn-ghost, .public-site .breadcrumb, .public-site .breadcrumb a, .public-site .meta-list, .public-site .post-meta { color: var(--ink-muted); }
   .public-site .chip, .public-site .input, .public-site .select, .public-site .textarea, .public-site .syllabus details { background: var(--surface-card); border-color: var(--line); color: var(--ink); }
