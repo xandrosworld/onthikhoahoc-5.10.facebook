@@ -1,0 +1,258 @@
+// Đổi provider sang "postgresql" / "mysql" và DATABASE_URL khi deploy production nếu cần.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// role: STUDENT | ADMIN ; status: ACTIVE | LOCKED
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  phone        String?
+  role         String   @default("STUDENT")
+  status       String   @default("ACTIVE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile       StudentProfile?
+  attempts      ExamAttempt[]
+  resetTokens   PasswordReset[]
+  registrations CourseRegistration[]
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StudentProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  grade        String?
+  school       String?
+  birthYear    Int?
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// status: DRAFT | PUBLISHED
+model Course {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  summary     String
+  description String
+  audience    String
+  grade       String
+  duration    String
+  schedule    String
+  tuition     String?
+  coverUrl    String?
+  theme       String   @default("indigo")
+  syllabus    String   @default("[]") // JSON: [{title, items: []}]
+  teacherName String   @default("")
+  teacherBio  String   @default("")
+  featured    Boolean  @default(false)
+  status      String   @default("PUBLISHED")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  registrations CourseRegistration[]
+}
+
+// status: NEW | CONTACTED | ENROLLED | CANCELLED
+model CourseRegistration {
+  id           String   @id @default(cuid())
+  courseId     String?
+  userId       String?
+  fullName     String
+  phone        String
+  email        String
+  currentGrade String
+  note         String?
+  status       String   @default("NEW")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// status: DRAFT | PUBLISHED
+model Exam {
+  id               String   @id @default(cuid())
+  title            String
+  description      String   @default("")
+  grade            String   @default("12")
+  durationMinutes  Int      @default(90)
+  shuffleQuestions Boolean  @default(true)
+  status           String   @default("DRAFT")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  sections ExamSection[]
+  attempts ExamAttempt[]
+}
+
+// type: MULTIPLE_CHOICE | TRUE_FALSE | SHORT_ANSWER
+model ExamSection {
+  id       String @id @default(cuid())
+  examId   String
+  type     String
+  order    Int
+  title    String
+  exam     Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
+  questions Question[]
+  @@unique([examId, type])
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  sectionId   String
+  order       Int
+  content     String
+  explanation String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  section     ExamSection        @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  options     QuestionOption[]
+  statements  TrueFalseStatement[]
+  shortAnswers ShortAnswer[]
+  answers     StudentAnswer[]
+  orders      AttemptQuestionOrder[]
+}
+
+model QuestionOption {
+  id         String  @id @default(cuid())
+  questionId String
+  label      String // A B C D
+  content    String
+  isCorrect  Boolean @default(false)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model TrueFalseStatement {
+  id         String  @id @default(cuid())
+  questionId String
+  label      String // a b c d
+  content    String
+  isTrue     Boolean @default(false)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model ShortAnswer {
+  id         String  @id @default(cuid())
+  questionId String
+  answer     String
+  isPrimary  Boolean @default(false)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+// status: IN_PROGRESS | SUBMITTED | EXPIRED (tự nộp do hết giờ)
+model ExamAttempt {
+  id          String    @id @default(cuid())
+  examId      String
+  userId      String
+  status      String    @default("IN_PROGRESS")
+  startedAt   DateTime  @default(now())
+  deadlineAt  DateTime
+  submittedAt DateTime?
+  autoSubmitted Boolean @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  exam    Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders  AttemptQuestionOrder[]
+  answers StudentAnswer[]
+  result  ExamResult?
+  @@index([userId])
+  @@index([examId])
+}
+
+model AttemptQuestionOrder {
+  id         String @id @default(cuid())
+  attemptId  String
+  sectionType String
+  questionId String
+  position   Int
+  attempt    ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question   Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+}
+
+// value: P1 = nhãn A-D ; P2 = "T"/"F" với sub = nhãn a-d ; P3 = văn bản
+model StudentAnswer {
+  id         String   @id @default(cuid())
+  attemptId  String
+  questionId String
+  sub        String   @default("")
+  value      String
+  updatedAt  DateTime @updatedAt
+  attempt    ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question   Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  @@unique([attemptId, questionId, sub])
+}
+
+model ExamResult {
+  id          String   @id @default(cuid())
+  attemptId   String   @unique
+  score       Float
+  totalUnits  Int
+  correct     Int
+  wrong       Int
+  unanswered  Int
+  durationSec Int
+  breakdown   String   // JSON per section
+  createdAt   DateTime @default(now())
+  attempt     ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+}
+
+// status: DRAFT | PUBLISHED ; category: TAI_LIEU | KINH_NGHIEM | THONG_BAO | VIDEO
+model Post {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  title      String
+  excerpt    String   @default("")
+  content    String
+  category   String   @default("TAI_LIEU")
+  coverUrl   String?
+  theme      String   @default("indigo")
+  videoUrl   String?
+  pdfUrl     String?
+  pdfName    String?
+  status     String   @default("PUBLISHED")
+  publishedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  filename  String   @unique
+  original  String
+  mime      String
+  size      Int
+  kind      String // IMAGE | PDF | VIDEO
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value String
+}
