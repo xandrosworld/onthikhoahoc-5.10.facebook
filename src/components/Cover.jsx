@@ -1,4 +1,7 @@
-/** Ảnh bìa mặc định dạng SVG (hoạ tiết toán học) khi chưa có ảnh tải lên. */
+import Image from 'next/image';
+import { VISUALS } from '@/lib/visuals';
+
+/** Giữ bảng màu cho các biểu mẫu quản trị hiện có. */
 const THEMES = {
   indigo: ['#1a256f', '#3b4fd8', '#8fa0ff'],
   navy: ['#0f2a4a', '#1f5a99', '#7fb4ea'],
@@ -42,10 +45,13 @@ export function CoverArt({ theme = 'indigo', seed = '', label = '' }) {
 }
 
 export default function Cover({ url, theme, seed, label, className = '' }) {
+  const source = url || VISUALS.library;
   return (
     <div className={`cover ${className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {url ? <img src={url} alt={label || ''} loading="lazy" /> : <CoverArt theme={theme} seed={seed} label={label} />}
+      {source.startsWith('/images/') ? (
+        <Image src={source} alt={label || ''} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 650px" />
+      ) : <img src={source} alt={label || ''} loading="lazy" />}
     </div>
   );
 }

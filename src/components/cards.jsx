@@ -3,11 +3,12 @@ import Cover from './Cover';
 import Icon from './Icon';
 import { Badge } from './ui';
 import { CATEGORY_LABEL, fmtDate } from '@/lib/utils';
+import { courseCover, postCover } from '@/lib/visuals';
 
 export function CourseCard({ c }) {
   return (
     <article className="card card-hover course-card">
-      <Link href={`/khoa-hoc/${c.slug}`} tabIndex={-1} aria-hidden="true"><Cover url={c.coverUrl} theme={c.theme} seed={c.slug} label={c.title} /></Link>
+      <Link href={`/khoa-hoc/${c.slug}`} tabIndex={-1} aria-hidden="true"><Cover url={courseCover(c)} theme={c.theme} seed={c.slug} label={c.title} /></Link>
       <div className="body">
         <div className="row between mb-2"><Badge tone="primary">Khối {c.grade}</Badge>{c.featured && <Badge tone="warning">Nổi bật</Badge>}</div>
         <h3><Link href={`/khoa-hoc/${c.slug}`} style={{ color: 'inherit' }}>{c.title}</Link></h3>
@@ -44,7 +45,7 @@ export function ExamCard({ e, counts }) {
 export function PostCard({ p }) {
   return (
     <article className="card card-hover post-card">
-      <Link href={`/bai-viet/${p.slug}`} tabIndex={-1} aria-hidden="true"><Cover url={p.coverUrl} theme={p.theme} seed={p.slug} label={p.title} /></Link>
+      <Link href={`/bai-viet/${p.slug}`} tabIndex={-1} aria-hidden="true"><Cover url={postCover(p)} theme={p.theme} seed={p.slug} label={p.title} /></Link>
       <div className="body">
         <div className="post-meta">
           <Badge tone={p.category === 'VIDEO' ? 'danger' : p.category === 'TAI_LIEU' ? 'info' : 'primary'}>{CATEGORY_LABEL[p.category]}</Badge>

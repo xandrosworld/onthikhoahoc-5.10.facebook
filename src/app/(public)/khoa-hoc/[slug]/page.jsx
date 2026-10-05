@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui';
 import { Prose, Rich } from '@/components/Rich';
 import { CourseCard } from '@/components/cards';
 import { parseJSON, initials } from '@/lib/utils';
+import { courseCover } from '@/lib/visuals';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,7 +42,7 @@ export default async function CourseDetail({ params }) {
       <div className="container" style={{ paddingTop: 40 }}>
         <div className="detail-layout">
           <div>
-            <div className="card" style={{ overflow: 'hidden' }}><Cover url={c.coverUrl} theme={c.theme} seed={c.slug} label={c.title} /></div>
+            <div className="card" style={{ overflow: 'hidden' }}><Cover url={courseCover(c)} theme={c.theme} seed={c.slug} label={c.title} /></div>
 
             <h2 className="mt-8">Giới thiệu khóa học</h2>
             <Prose text={c.description} />

@@ -21,8 +21,8 @@ export default function SiteHeader({ user, siteName, tagline, logoutAction }) {
   return (
     <header className="site-header">
       <div className="container inner">
-        <Link href="/" className="brand" aria-label={`${siteName} – Trang chủ`}>
-          <span className="brand-mark">π</span>
+        <Link href="/" className="brand" aria-label={`${siteName} ${tagline} - Trang chủ`}>
+          <span className="brand-mark" aria-hidden="true">π</span>
           <span>{siteName}<small>{tagline}</small></span>
         </Link>
         <nav className="nav" aria-label="Điều hướng chính">

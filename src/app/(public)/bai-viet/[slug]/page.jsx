@@ -8,6 +8,7 @@ import { Prose } from '@/components/Rich';
 import { PostCard } from '@/components/cards';
 import { CATEGORY_LABEL, fmtDate, youtubeEmbed } from '@/lib/utils';
 import PdfViewer from './PdfViewer';
+import { postCover } from '@/lib/visuals';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +40,7 @@ export default async function PostDetail({ params }) {
         </div>
       </section>
       <article className="container" style={{ maxWidth: 860, paddingTop: 40 }}>
-        {p.coverUrl && <div className="card mb-6" style={{ overflow: 'hidden' }}><Cover url={p.coverUrl} theme={p.theme} seed={p.slug} label={p.title} /></div>}
+        <div className="card mb-6" style={{ overflow: 'hidden' }}><Cover url={postCover(p)} theme={p.theme} seed={p.slug} label={p.title} /></div>
 
         {embed && <div className="video-frame"><iframe src={embed} title={p.title} allow="accelerometer; encrypted-media; picture-in-picture" allowFullScreen loading="lazy" /></div>}
         {isFileVideo && <div className="video-frame"><video src={p.videoUrl} controls preload="metadata" /></div>}
