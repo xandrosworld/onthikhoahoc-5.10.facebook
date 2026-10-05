@@ -38,6 +38,7 @@
 .public-site .nav a { font-size: .84rem; }
 .public-site .header-actions { gap: 8px; }
 .public-site .header-actions .btn { font-size: .84rem; padding-inline: 15px; }
+.public-site .header-actions .btn-icon { width: 42px; min-width: 42px; padding: 0; }
 .public-site .mobile-nav { background: var(--surface); border-color: var(--line); }
 .public-site .mobile-nav a:not(.btn) { color: var(--ink); }
 .home-hero { background: var(--surface-soft); }
