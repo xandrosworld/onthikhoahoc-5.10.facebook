@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import SiteHeader from '@/components/SiteHeader';
+import SiteMotion from '@/components/SiteMotion';
 import Icon from '@/components/Icon';
 import { getUser } from '@/lib/auth';
 import { getSettings } from '@/lib/site';
@@ -11,6 +12,7 @@ export default async function PublicLayout({ children }) {
   const [user, s] = await Promise.all([getUser(), getSettings()]);
   return (
     <div className="public-site">
+      <SiteMotion />
       <SiteHeader user={user ? { fullName: user.fullName, role: user.role } : null} siteName={s.siteName} tagline={s.tagline} logoutAction={logoutAction} />
       <main id="main">{children}</main>
       <footer className="site-footer">

@@ -2,6 +2,7 @@ import { Be_Vietnam_Pro } from 'next/font/google';
 import 'katex/dist/katex.min.css';
 import './globals.css';
 import './refinement.css';
+import './motion.css';
 import { ToastProvider } from '@/components/client-ui';
 import { getSettings } from '@/lib/site';
 

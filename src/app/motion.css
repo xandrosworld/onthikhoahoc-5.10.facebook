@@ -1,0 +1,114 @@
+:root {
+  --stagger-dur: 500ms;
+  --stagger-distance: 12px;
+  --stagger-stagger: 40ms;
+  --stagger-blur: 3px;
+  --stagger-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-enter: 400ms;
+  --motion-feedback: 250ms;
+}
+/* transitions-dev: texts reveal, retained verbatim. */
+.t-stagger-line {
+  display: block;
+  opacity: 0;
+  transform: translateY(var(--stagger-distance));
+  filter: blur(var(--stagger-blur));
+  transition:
+    opacity   var(--stagger-dur) var(--stagger-ease),
+    transform var(--stagger-dur) var(--stagger-ease),
+    filter    var(--stagger-dur) var(--stagger-ease);
+  will-change: transform, opacity, filter;
+}
+.t-stagger-line--2 { transition-delay: var(--stagger-stagger); }
+.t-stagger.is-shown .t-stagger-line {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+.t-stagger.is-hiding .t-stagger-line {
+  opacity: 0;
+  transform: translateY(0);
+  filter: blur(0);
+  transition:
+    opacity 200ms ease,
+    transform 0s linear,
+    filter 0s linear;
+  transition-delay: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-stagger-line { transition: none !important; }
+}
+/* Preserve existing grid/flex layouts while adding the reveal hooks. */
+.public-site .t-stagger { --stagger-dur: 750ms; --stagger-distance: 26px; --stagger-stagger: 85ms; }
+.t-stagger > .t-stagger-line { transition-delay: calc(var(--reveal-index, 0) * var(--stagger-stagger)); }
+.public-site .t-stagger > .t-stagger-line { transition-property: opacity, transform, filter, box-shadow, border-color; transition-duration: var(--stagger-dur); transition-timing-function: var(--stagger-ease); }
+.t-stagger.is-shown > .t-stagger-line { will-change: auto; }
+.learning-facts.t-stagger > div { display: flex; }
+.home-courses.t-stagger > .course-card { display: grid; }
+.home-posts.t-stagger > .post-card:first-child { display: flex; }
+.home-posts.t-stagger > .post-card:not(:first-child) { display: grid; }
+.public-site .grid.t-stagger > .exam-card, .public-site .grid.t-stagger > .post-card, .public-site .grid.t-stagger:not(.home-courses) > .course-card { display: flex; }
+.reading-progress { display: none; }
+@keyframes motion-rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes motion-photo { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes motion-drift { from { transform: scale(1.025); } to { transform: scale(1.075) translate(-.8%, .5%); } }
+@keyframes motion-underline { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes motion-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes motion-pop { from { opacity: .65; transform: scale(.97); } to { opacity: 1; transform: scale(1); } }
+@keyframes motion-chart { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes motion-modal { from { opacity: 0; transform: translateY(18px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: no-preference) {
+  .public-site .hero-copy > * { animation: motion-rise 850ms var(--stagger-ease) both; }
+  .public-site .hero-copy h1 { animation-delay: 110ms; }
+  .public-site .hero-copy .lead { animation-delay: 230ms; }
+  .public-site .hero-copy .hero-actions { animation-delay: 350ms; }
+  .public-site .hero-photo { animation: motion-photo 1100ms var(--stagger-ease) 160ms both; }
+  .public-site .hero-photo img { animation: motion-drift 8s ease-in-out infinite alternate; }
+  .public-site .hero-copy h1 span { width: fit-content; position: relative; padding-bottom: 9px; }
+  .public-site .hero-copy h1 span::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: currentColor; opacity: .25; border-radius: 3px; transform-origin: left; animation: motion-underline 850ms var(--stagger-ease) 650ms both; }
+  .public-site .cover img, .public-site .photo-frame img, .public-site .journey-photo img, .public-site .cta-photo img { transition: transform 800ms var(--stagger-ease); }
+  .public-site .btn, .app .btn { transition: transform var(--motion-feedback) var(--stagger-ease), box-shadow var(--motion-feedback) ease, background-color var(--motion-feedback) ease, border-color var(--motion-feedback) ease; }
+  .public-site .btn svg, .app .btn svg { transition: transform var(--motion-feedback) var(--stagger-ease); }
+  .public-site .btn:active, .app .btn:active { transform: scale(.97); }
+  .side-link { transition: background-color 200ms ease, color 200ms ease, transform 250ms var(--stagger-ease); }
+  .side-link[aria-current='page'] svg { animation: motion-pop 350ms var(--stagger-ease); }
+  .mobile-nav.open { transform-origin: top; animation: motion-rise 320ms var(--stagger-ease); }
+  .sidebar { transition: transform 360ms var(--stagger-ease); }
+  .app-menu-backdrop { animation: fade 250ms ease; }
+  .app-content > .page-title, .app-content > .welcome { animation: motion-rise 500ms var(--stagger-ease) both; }
+  .dashboard-stats > .stat-card { animation: motion-rise 600ms var(--stagger-ease) both; }
+  .dashboard-stats > .stat-card:nth-child(2) { animation-delay: 60ms; }
+  .dashboard-stats > .stat-card:nth-child(3) { animation-delay: 120ms; }
+  .dashboard-stats > .stat-card:nth-child(4) { animation-delay: 180ms; }
+  .dashboard-stats > .stat-card:nth-child(5) { animation-delay: 240ms; }
+  .dashboard-stats > .stat-card:nth-child(6) { animation-delay: 300ms; }
+  .template-option { transition: border-color 200ms ease, box-shadow 250ms ease, background-color 200ms ease; }
+  .template-option.selected .template-diagram i { animation: motion-pop 400ms var(--stagger-ease); }
+  .template-option.selected .template-diagram i:nth-child(even) { animation-delay: 70ms; }
+  .b-q-body { animation: motion-rise 300ms var(--stagger-ease); }
+  .modal { animation: motion-modal 320ms var(--stagger-ease); }
+  .modal-backdrop { animation: fade 250ms ease; }
+  .toast { animation: motion-rise 400ms var(--stagger-ease); }
+  .chart .col i { transform-origin: bottom; animation: motion-chart 700ms var(--stagger-ease); }
+  @supports (animation-timeline: scroll()) {
+    .reading-progress { display: block; position: fixed; top: 0; left: 0; right: 0; height: 3px; background: var(--brand); z-index: 140; pointer-events: none; transform-origin: left; animation: motion-progress linear both; animation-timeline: scroll(root); }
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .public-site .card-hover:not(.t-stagger-line) { transition: transform 400ms var(--stagger-ease), box-shadow 400ms ease, border-color 250ms ease; }
+  .public-site .t-stagger.is-shown .card-hover:hover { transition-delay: 0s; }
+  .public-site .card-hover:hover, .public-site .t-stagger.is-shown .card-hover:hover { transform: translateY(-8px); box-shadow: 0 22px 40px rgb(30 48 90 / 13%); border-color: var(--primary-200); }
+  .public-site .card-hover:hover .cover img, .public-site .photo-frame:hover img, .public-site .journey-photo:hover img, .public-site .cta-photo:hover img { transform: scale(1.06); }
+  .public-site .btn:hover, .app .btn:hover { transform: translateY(-2px); }
+  .public-site .btn-primary:hover, .app .btn-primary:hover { box-shadow: 0 8px 18px rgb(41 59 156 / 23%); }
+  .public-site .btn:hover svg, .app .btn:hover svg { transform: translateX(3px); }
+  .side-link:hover { transform: translateX(3px); }
+  .benefit-item:hover .benefit-icon svg { transform: translateY(-4px) rotate(-8deg); }
+  .benefit-icon svg { transition: transform 350ms var(--stagger-ease); }
+}
+@media (max-width: 768px) { .home-posts.t-stagger > .post-card:not(:first-child) { display: flex; } }
+@media (prefers-reduced-motion: reduce) {
+  .public-site .t-stagger-line { opacity: 1; transform: none; filter: none; }
+  .reading-progress { display: none; }
+}
+@media print { .public-site .t-stagger-line { opacity: 1; transform: none; filter: none; } .reading-progress { display: none; } }
