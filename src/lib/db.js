@@ -3,10 +3,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
+import { getStore } from '@netlify/blobs';
+import { createSnapshotDatabase } from './snapshot-db';
 
 const g = globalThis;
 
 function createClient() {
+  if (process.env.NETLIFY_PERSISTENCE === '1' && process.env.DEMO_BUILD !== '1') {
+    return createSnapshotDatabase({
+      getStore: () => getStore({ name: 'onthikhoahoc-data-v1', consistency: 'strong' }),
+      seedPath: path.join(process.cwd(), 'prisma', 'demo.db'),
+      databasePath: path.join(os.tmpdir(), 'onthikhoahoc-shared.db'),
+    });
+  }
   if (process.env.NETLIFY_DEMO === '1' && process.env.DEMO_BUILD !== '1') {
     // Each serverless instance gets a writable copy of the build's demo snapshot.
     const snapshot = path.join(process.cwd(), 'prisma', 'demo.db');

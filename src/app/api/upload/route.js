@@ -1,14 +1,10 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import crypto from 'crypto';
 import { apiUser } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { uploadDirectory } from '@/lib/uploads';
+import { writeUpload } from '@/lib/uploads';
 
 export const runtime = 'nodejs';
-
-const UPLOAD_DIR = uploadDirectory;
 
 const RULES = {
   IMAGE: { max: 5 * 1024 * 1024, mimes: { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' }, label: 'Ảnh (JPG, PNG, WEBP, GIF) tối đa 5MB' },
@@ -33,10 +29,8 @@ export async function POST(req) {
   const head = buf.subarray(0, 12).toString('latin1');
   const okSig = kind === 'PDF' ? head.startsWith('%PDF') : kind === 'IMAGE' ? /^(\xFF\xD8\xFF|\x89PNG|GIF8|RIFF)/.test(head) : kind === 'VIDEO' ? (head.includes('ftyp') || buf[0] === 0x1a) : true;
   if (!okSig) return NextResponse.json({ error: 'Nội dung tệp không khớp định dạng.' }, { status: 415 });
-  const dir = UPLOAD_DIR();
-  fs.mkdirSync(dir, { recursive: true });
   const filename = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`;
-  fs.writeFileSync(path.join(dir, filename), buf);
+  await writeUpload(filename, buf);
   await db.media.create({ data: { filename, original: String(file.name).slice(0, 200), mime: file.type, size: file.size, kind } });
   return NextResponse.json({ url: `/api/files/${filename}`, name: file.name, size: file.size });
 }

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { uploadDirectory } from '@/lib/uploads';
+import { findUpload } from '@/lib/uploads';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,8 +11,8 @@ export async function GET(req, { params }) {
   params = await params;
   const name = params.name;
   if (!/^[a-z0-9._-]+$/i.test(name) || name.includes('..')) return new Response('Not found', { status: 404 });
-  const file = path.join(uploadDirectory(), name);
-  if (!fs.existsSync(file)) return new Response('Not found', { status: 404 });
+  const file = await findUpload(name);
+  if (!file) return new Response('Not found', { status: 404 });
   const stat = fs.statSync(file);
   const type = MIME[path.extname(name).toLowerCase()] || 'application/octet-stream';
   const download = new URL(req.url).searchParams.get('download');

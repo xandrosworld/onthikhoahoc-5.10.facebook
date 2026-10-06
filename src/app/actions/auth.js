@@ -102,10 +102,11 @@ export async function resetPasswordAction(_prev, fd) {
   if (Object.keys(errors).length) return { errors };
   const rec = await db.passwordReset.findUnique({ where: { token } });
   if (!rec || rec.usedAt || rec.expiresAt < new Date()) return { error: 'Liên kết đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu lại.' };
-  await db.$transaction([
-    db.user.update({ where: { id: rec.userId }, data: { passwordHash: await bcrypt.hash(password, 10) } }),
-    db.passwordReset.update({ where: { id: rec.id }, data: { usedAt: new Date() } }),
-  ]);
+  const passwordHash = await bcrypt.hash(password, 10);
+  await db.$transaction(async tx => {
+    await tx.user.update({ where: { id: rec.userId }, data: { passwordHash } });
+    await tx.passwordReset.update({ where: { id: rec.id }, data: { usedAt: new Date() } });
+  });
   return { done: true };
 }
 
