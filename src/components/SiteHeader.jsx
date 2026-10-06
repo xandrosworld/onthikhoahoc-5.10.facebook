@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 import { initials } from '@/lib/utils';
 
@@ -16,6 +16,14 @@ const NAV = [
 export default function SiteHeader({ user, siteName, tagline, logoutAction }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const menuButton = useRef(null);
+  useEffect(() => { setOpen(false); }, [path]);
+  useEffect(() => {
+    if (!open) return;
+    const close = e => { if (e.key === 'Escape') { setOpen(false); menuButton.current?.focus(); } };
+    window.addEventListener('keydown', close);
+    return () => window.removeEventListener('keydown', close);
+  }, [open]);
   const isActive = (h) => (h === '/' ? path === '/' : path.startsWith(h));
   const dash = user?.role === 'ADMIN' ? '/admin' : '/hoc-sinh';
   return (
@@ -37,10 +45,10 @@ export default function SiteHeader({ user, siteName, tagline, logoutAction }) {
               <Link href="/dang-ky" className="btn btn-primary hide-m">Tạo tài khoản</Link>
             </>
           )}
-          <button className="btn btn-icon btn-ghost menu-btn" aria-label="Mở menu" aria-expanded={open} onClick={() => setOpen(!open)}><Icon name={open ? 'x' : 'menu'} /></button>
+          <button ref={menuButton} className="btn btn-icon btn-ghost menu-btn" aria-label="Mở menu" aria-expanded={open} aria-controls="public-navigation" onClick={() => setOpen(!open)}><Icon name={open ? 'x' : 'menu'} /></button>
         </div>
       </div>
-      <div className={`mobile-nav ${open ? 'open' : ''}`}>
+      <div id="public-navigation" className={`mobile-nav ${open ? 'open' : ''}`}>
         {NAV.map((n) => <Link key={n.href} href={n.href} onClick={() => setOpen(false)}>{n.label}</Link>)}
         {user ? (
           <>

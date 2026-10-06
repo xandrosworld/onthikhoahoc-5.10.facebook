@@ -38,7 +38,7 @@ export default async function Home() {
           <div className="hero-copy">
             <span className="eyebrow">Học Toán cùng {s.siteName}</span>
             <h1>Học Toán chắc.<span>Tự tin đi thi.</span></h1>
-            <p className="lead">Học tại lớp, luyện đề trực tuyến. Hiểu từng lời giải, tiến bộ qua mỗi bài làm.</p>
+            <p className="lead">Học tại lớp, luyện đề trực tuyến.<br />Hiểu từng lời giải, tiến bộ mỗi ngày.</p>
             <div className="hero-actions">
               <Link href="/de-thi" className="btn btn-lg btn-primary">Luyện thi ngay <Icon name="right" size={18} /></Link>
               <Link href="/dang-ky-khoa-hoc" className="btn btn-lg">Đăng ký học</Link>
@@ -52,10 +52,10 @@ export default async function Home() {
 
       <div className="container">
         <div className="learning-facts" role="list" aria-label="Chương trình học">
-          <div role="listitem"><b>10 - 12</b><span>Khối lớp đồng hành</span></div>
-          <div role="listitem"><b>3 phần</b><span>Cấu trúc đề luyện thi</span></div>
-          <div role="listitem"><b>Lớp nhỏ</b><span>Giáo viên theo sát</span></div>
-          <div role="listitem"><b>Có lời giải</b><span>Hiểu bài sau mỗi lượt thi</span></div>
+          <div role="listitem"><Icon name="book" size={22} /><div><b>Toán 10, 11, 12</b><span>Lộ trình theo từng khối lớp</span></div></div>
+          <div role="listitem"><Icon name="clipboard" size={22} /><div><b>Đề thi linh hoạt</b><span>Luyện theo từng mục tiêu</span></div></div>
+          <div role="listitem"><Icon name="users" size={22} /><div><b>Lớp học nhỏ</b><span>Giáo viên theo sát</span></div></div>
+          <div role="listitem"><Icon name="check" size={22} /><div><b>Lời giải rõ ràng</b><span>Hiểu bài sau mỗi lượt thi</span></div></div>
         </div>
       </div>
 
@@ -63,7 +63,6 @@ export default async function Home() {
         <div className="container intro-grid">
           <figure className="intro-photo">
             <div className="photo-frame"><Image src={VISUALS.classroom} alt="Giáo viên hướng dẫn nhóm học sinh giải bài tập Toán" fill sizes="(max-width: 768px) 100vw, 600px" /></div>
-            <figcaption>Học cùng nhau, hiểu từng bước.</figcaption>
           </figure>
           <div className="intro-copy">
             <h2 id="intro-h">Một lớp học nhỏ.<br />Một nền tảng vững.</h2>

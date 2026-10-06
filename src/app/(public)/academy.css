@@ -1,0 +1,148 @@
+/* Academy visual evolution: variance 6, motion 3, density 4.
+   Retain brand, copy, routes and auto theme. Native CSS; no new UI framework.
+   Shape scale: 10px controls, 18px cards, 28px feature surfaces. */
+.public-site { --surface:#fff; --surface-soft:#f5f7fc; --surface-card:#fff; --ink:#17243b; --ink-muted:#56647b; --line:#e0e6f0; --brand:#293b9c; --hero-surface:#edf1fc; --radius:10px; --radius-lg:18px; font-size:16px; }
+.public-site .container { max-width:1328px; padding-inline:32px; }
+.public-site .btn { border-radius:10px; }
+.public-site .btn-primary { background:#293b9c; border-color:#293b9c; color:#fff; }
+.public-site .btn-primary:hover { background:#20307e; border-color:#20307e; color:#fff; }
+.public-site .btn-lg { height:54px; padding-inline:25px; font-size:.9rem; }
+.public-site .text-link { font-size:.85rem; }
+.public-site .section-head h2 { font-size:clamp(1.85rem,2.8vw,2.5rem); line-height:1.3; letter-spacing:-.045em; }
+.public-site .section-head p { font-size:.96rem; margin:12px 0 0; }
+.public-site .section-row { margin-bottom:36px; gap:24px; }
+.public-site .eyebrow { font-size:.72rem; margin-bottom:24px; }
+.public-site .site-header .inner { height:80px; gap:26px; }
+.public-site .brand { font-size:1.12rem; letter-spacing:-.035em; gap:10px; }
+.public-site .brand small { font-size:.68rem; letter-spacing:0; }
+.public-site .brand-mark { background:#293b9c; border-radius:12px; width:40px; height:40px; }
+.public-site .nav { gap:3px; }
+.public-site .nav a { color:var(--ink-muted); font-size:.79rem; padding:10px 12px; }
+.public-site .nav a[aria-current='page'] { background:var(--surface-soft); color:var(--brand); }
+.public-site .header-actions { gap:6px; }
+.public-site .header-actions .btn { font-size:.78rem; padding-inline:14px; }
+.public-site .header-actions .btn-icon { width:42px; padding:0; }
+.home-hero { margin:24px 24px 0; border-radius:28px; background:var(--hero-surface); overflow:hidden; }
+.home-hero .container { grid-template-columns:1fr 1fr; gap:48px; padding-block:30px; }
+.hero-copy { padding:34px 0 38px; }
+.hero-copy h1 { font-size:clamp(2.8rem,4.5vw,4.15rem); line-height:1.17; letter-spacing:-.06em; margin-bottom:26px; }
+.hero-copy .lead { font-size:1.05rem; line-height:1.85; max-width:450px; margin-bottom:32px; }
+.hero-photo { border-radius:22px; height:490px; aspect-ratio:auto; }
+.hero-photo img { object-position:53% center; }
+.learning-facts { grid-template-columns:repeat(4,minmax(0,1fr)); padding:36px 0; gap:20px; }
+.learning-facts > div, .learning-facts > div:first-child { display:flex; align-items:center; gap:14px; min-width:0; padding:0; border:0; }
+.learning-facts > div > svg { color:var(--brand); flex:none; }
+.learning-facts b { font-size:.92rem; font-weight:600; letter-spacing:-.025em; margin-bottom:4px; }
+.learning-facts span { font-size:.75rem; }
+.intro-grid { grid-template-columns:1fr 1fr; gap:80px; }
+.photo-frame { aspect-ratio:1.45; }
+.intro-copy h2 { font-size:clamp(1.9rem,2.8vw,2.5rem); line-height:1.3; letter-spacing:-.045em; }
+.intro-copy p { font-size:.95rem; line-height:1.9; max-width:510px; }
+.home-courses.grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+.home-courses .course-card { display:grid; grid-template-columns:40% minmax(0,1fr); padding:10px; }
+.home-courses .course-card > a { height:100%; overflow:hidden; border-radius:12px; }
+.home-courses .course-card .cover { height:100%; min-height:290px; aspect-ratio:auto; }
+.public-site .course-card .body { padding:24px; }
+.home-courses .course-card .body { padding:18px 14px 14px 24px; }
+.public-site .course-card h3 { font-size:1.12rem; line-height:1.45; letter-spacing:-.035em; margin-top:4px; }
+.public-site .course-card p { font-size:.85rem; line-height:1.8; }
+.public-site .course-card .meta-list { font-size:.77rem; margin-bottom:22px; gap:8px; }
+.public-site .course-card .foot .btn { font-size:.75rem; padding-inline:10px; min-height:38px; }
+.public-site .badge { font-size:.69rem; padding:3px 9px; }
+.public-site .badge-warning { color:var(--brand); background:var(--primary-50); }
+.home-benefits .container { display:grid; grid-template-columns:.75fr 1.25fr; gap:64px; }
+.home-benefits .section-head h2 { font-size:2.15rem; }
+.benefit-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:30px 28px; }
+.benefit-item { display:block; border-top:1px solid var(--line); padding:22px 0 0; }
+.benefit-icon { width:auto; height:auto; border-radius:0; background:none; justify-content:flex-start; margin-bottom:15px; }
+.benefit-item h3 { font-size:.96rem; line-height:1.45; margin-bottom:10px; }
+.benefit-item p { font-size:.83rem; line-height:1.85; }
+.learning-journey { grid-template-columns:.85fr 1.15fr; gap:80px; }
+.journey-photo { aspect-ratio:1; }
+.learning-journey h2 { font-size:clamp(1.8rem,2.7vw,2.4rem); line-height:1.35; letter-spacing:-.04em; margin-bottom:30px; }
+.journey-steps { grid-template-columns:1fr 1fr; gap:26px; }
+.journey-steps li { padding-left:0; }
+.journey-steps li::before { content:'0' counter(journey); position:static; display:block; width:auto; height:auto; border:0; border-radius:0; background:none; font-size:.78rem; margin-bottom:12px; }
+.journey-steps h3 { font-size:.93rem; line-height:1.5; }
+.journey-steps p { font-size:.82rem; line-height:1.8; }
+.public-site .exam-card { border-top:3px solid var(--primary-200); }
+.public-site .exam-card h3 { font-size:1.1rem; line-height:1.5; margin-block:22px 10px; }
+.public-site .exam-card p { font-size:.87rem; line-height:1.8; }
+.public-site .exam-card .parts { margin:10px 0 22px; }
+.public-site .exam-card .btn { font-size:.82rem; }
+.public-site .post-card .body { padding:24px; }
+.public-site .post-card h3 { line-height:1.5; letter-spacing:-.03em; }
+.public-site .post-card p { font-size:.85rem; line-height:1.8; }
+.home-cta-panel { grid-template-columns:1.2fr .8fr; gap:50px; background:var(--hero-surface); border-radius:28px; }
+.home-cta-panel h2 { font-size:clamp(1.8rem,2.8vw,2.5rem); line-height:1.3; letter-spacing:-.045em; }
+.home-cta-panel p { font-size:.92rem; line-height:1.8; max-width:470px; margin-block:20px 26px; }
+.cta-photo { border-radius:20px; }
+.public-site .site-footer { background:var(--surface); padding-block:64px 26px; }
+.public-site .footer-title { font-size:.86rem; margin-bottom:20px; }
+.public-site .site-footer a { font-size:.85rem; padding-block:7px; }
+.public-site .footer-bottom { font-size:.75rem; }
+.public-site .page-hero { background:var(--hero-surface); border-bottom:0; padding:60px 0; }
+.public-site .page-hero h1 { font-size:clamp(2rem,3.6vw,3.1rem); letter-spacing:-.055em; }
+.public-site .page-hero p { font-size:.97rem; line-height:1.85; }
+.public-site .filter-chips { gap:10px; margin-bottom:32px; }
+.public-site .chip { border-radius:10px; padding:10px 18px; font-size:.82rem; }
+@media (prefers-color-scheme:dark) {
+  .public-site { --surface:#111c30; --surface-soft:#162239; --surface-card:#1a2942; --hero-surface:#1a2942; --ink:#eff3fb; --ink-muted:#bdc9dc; --line:#354862; --brand:#bac9ff; }
+  .public-site .btn-primary { color:#fff; background:#3549be; border-color:#3549be; }
+}
+@media (max-width:1180px) {
+  .public-site .nav, .public-site .header-actions .hide-m { display:none; }
+  .public-site .menu-btn { display:inline-flex; }
+  .public-site .mobile-nav.open { display:block; }
+  .home-hero .container { gap:28px; }
+  .hero-copy h1 { font-size:clamp(2.5rem,4.5vw,3.3rem); }
+  .hero-photo { height:440px; }
+  .intro-grid, .learning-journey { gap:44px; }
+  .home-benefits .container { grid-template-columns:1fr; gap:12px; }
+  .benefit-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .home-courses .course-card { grid-template-columns:1fr; padding:0; }
+  .home-courses .course-card > a { border-radius:0; }
+  .home-courses .course-card .cover { height:auto; min-height:0; aspect-ratio:1.9; }
+  .home-courses .course-card .body { padding:24px; }
+}
+@media (max-width:768px) {
+  .public-site .container { padding-inline:20px; }
+  .public-site .site-header .inner { height:68px; }
+  .public-site .section-row { align-items:flex-start; gap:20px; }
+  .home-hero { margin:12px 12px 0; border-radius:22px; }
+  .home-hero .container { grid-template-columns:1fr; gap:26px; padding:30px 22px 22px; }
+  .hero-copy { padding:0; }
+  .hero-copy h1 { font-size:clamp(2.4rem,7.8vw,3.6rem); margin-bottom:20px; }
+  .hero-copy .lead { font-size:.9rem; margin-bottom:24px; }
+  .public-site .eyebrow { font-size:.63rem; margin-bottom:20px; }
+  .hero-actions .btn { height:48px; padding-inline:18px; font-size:.81rem; }
+  .hero-actions { gap:10px; }
+  .hero-photo { height:auto; aspect-ratio:1.45; border-radius:16px; }
+  .learning-facts { grid-template-columns:1fr 1fr; gap:24px 16px; padding-block:30px; }
+  .learning-facts > div { gap:10px; align-items:flex-start; padding:0; }
+  .learning-facts > div > svg { width:18px; margin-top:3px; }
+  .learning-facts b { font-size:.77rem; }
+  .learning-facts span { font-size:.67rem; line-height:1.6; display:block; }
+  .intro-grid, .learning-journey, .home-cta-panel { grid-template-columns:1fr; gap:28px; }
+  .intro-copy p { font-size:.9rem; }
+  .home-courses.grid { grid-template-columns:1fr 1fr; gap:16px; }
+  .home-courses .course-card .body { padding:18px; }
+  .public-site .course-card h3 { font-size:1rem; }
+  .benefit-grid { grid-template-columns:1fr 1fr; gap:28px 22px; }
+  .home-benefits .section-head h2 { font-size:1.85rem; }
+  .journey-photo { aspect-ratio:1.5; }
+  .home-cta-panel { padding:28px; }
+  .cta-photo { aspect-ratio:1.8; }
+}
+@media (max-width:520px) {
+  .home-courses.grid { grid-template-columns:1fr; }
+  .home-courses .course-card .body { padding:24px; }
+  .journey-steps { grid-template-columns:1fr; gap:22px; }
+  .journey-steps li { position:relative; padding-left:38px; }
+  .journey-steps li::before { position:absolute; left:0; top:3px; }
+  .benefit-grid { gap:28px 18px; }
+  .benefit-item h3 { font-size:.88rem; }
+  .benefit-item p { font-size:.78rem; }
+  .public-site .footer-grid { grid-template-columns:1fr; }
+  .home-cta-panel .btn { font-size:.8rem; padding-inline:16px; }
+}

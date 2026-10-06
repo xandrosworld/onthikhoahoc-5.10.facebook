@@ -5,6 +5,7 @@ import { getUser } from '@/lib/auth';
 import { getSettings } from '@/lib/site';
 import { logoutAction } from '@/app/actions/auth';
 import './public.css';
+import './academy.css';
 
 export default async function PublicLayout({ children }) {
   const [user, s] = await Promise.all([getUser(), getSettings()]);

@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { getSettings } from '@/lib/site';
+import { VISUALS } from '@/lib/visuals';
 
 export default async function AuthLayout({ children }) {
   const s = await getSettings();
@@ -9,8 +11,8 @@ export default async function AuthLayout({ children }) {
         <Link href="/" className="brand"><span className="brand-mark" style={{ background: '#fff', color: '#22308f' }}>π</span><span>{s.siteName}</span></Link>
         <div>
           <h2>Luyện Toán mỗi ngày,<br />tiến bộ mỗi tuần.</h2>
-          <blockquote>“Làm đề có tính giờ giúp em quen áp lực phòng thi. Xem lại từng câu sai là cách em tiến bộ nhanh nhất.”</blockquote>
-          <p style={{ marginTop: 12 }}>— Học sinh lớp 12, khóa Luyện thi THPT</p>
+          <div className="auth-visual"><Image src={VISUALS.classroom} alt="Cùng học và giải bài tập Toán tại lớp" fill sizes="50vw" /></div>
+          <p>Làm bài có tính giờ, xem lời giải từng câu và theo dõi sự tiến bộ của em trong một không gian học tập.</p>
         </div>
         <span className="small">© {new Date().getFullYear()} {s.siteName}</span>
       </aside>

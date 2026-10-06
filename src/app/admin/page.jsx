@@ -32,10 +32,10 @@ export default async function AdminHome() {
         <Link href="/admin/de-thi/moi" className="btn btn-primary"><Icon name="plus" size={18} />Tạo đề thi</Link>
         <Link href="/admin/bai-viet/moi" className="btn"><Icon name="plus" size={18} />Viết bài</Link>
       </PageTitle>
-      <div className="grid c3 mb-6">
+      <div className="grid c3 mb-6 dashboard-stats">
         {stats.map(([ic, l, v, c]) => <div key={l} className="card stat-card"><span className={`ic ${c}`}><Icon name={ic} /></span><div><b>{v}</b><span>{l}</span></div></div>)}
       </div>
-      <div className="grid split">
+      <div className="grid split dashboard-panels">
         <section className="card">
           <div className="card-head"><h3>Kết quả thi gần đây</h3><Link href="/admin/ket-qua" className="small">Xem tất cả</Link></div>
           {recent.length ? (

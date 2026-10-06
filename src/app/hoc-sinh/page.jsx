@@ -29,7 +29,7 @@ export default async function StudentHome({ searchParams }) {
       {searchParams?.welcome && <ToastOnMount message="Tạo tài khoản thành công. Chào mừng bạn!" />}
       <div className="welcome mb-6">
         <div>
-          <h1>Xin chào, {first}! 👋</h1>
+          <h1>Xin chào, {first}!</h1>
           <p>{inProgress ? `Bạn đang làm dở “${inProgress.exam.title}”.` : done.length ? 'Tiếp tục luyện đề để cải thiện điểm số của bạn.' : 'Hãy bắt đầu bằng một đề luyện thi đầu tiên.'}</p>
         </div>
         {inProgress ? (

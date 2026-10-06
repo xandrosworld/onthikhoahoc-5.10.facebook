@@ -33,9 +33,9 @@ export function ExamCard({ e, counts }) {
       <h3><Link href={`/hoc-sinh/luyen-thi/${e.id}`} style={{ color: 'inherit' }}>{e.title}</Link></h3>
       <p>{e.description}</p>
       <div className="parts">
-        <Badge>{counts.mc} câu trắc nghiệm</Badge>
-        <Badge>{counts.tf} câu đúng/sai</Badge>
-        <Badge>{counts.sa} câu trả lời ngắn</Badge>
+        {!!counts.mc && <Badge>{counts.mc} câu trắc nghiệm</Badge>}
+        {!!counts.tf && <Badge>{counts.tf} câu đúng/sai</Badge>}
+        {!!counts.sa && <Badge>{counts.sa} câu trả lời ngắn</Badge>}
       </div>
       <Link href={`/hoc-sinh/luyen-thi/${e.id}`} className="btn btn-primary btn-block">Luyện thi ngay</Link>
     </article>

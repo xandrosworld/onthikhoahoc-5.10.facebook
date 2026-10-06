@@ -196,7 +196,7 @@ export default function ExamBuilder({ initial, attemptCount }) {
         <legend>Chọn mẫu đề thi</legend>
         <div className="template-options">{EXAM_TEMPLATES.map(template => <label key={template.id} className={`template-option ${exam.template === template.id ? 'selected' : ''}`}>
           <input type="radio" name="exam-template" value={template.id} checked={exam.template === template.id} onChange={() => chooseTemplate(template.id)} />
-          <span><b>{template.name}</b><small>{template.description}</small></span>
+          <span className="template-copy"><span className="template-diagram" aria-hidden="true"><i>A</i><i>B</i><i>C</i><i>D</i>{template.id !== 'MC' && <i>Đ/S</i>}{template.id === 'FULL' && <i>123</i>}</span><b>{template.name}</b><small>{template.description}</small></span>
         </label>)}</div>
       </fieldset>
 
