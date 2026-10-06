@@ -3,6 +3,7 @@ import Icon from '@/components/Icon';
 import { Rich } from '@/components/Rich';
 import { Badge } from '@/components/ui';
 import { SECTION_META, fmtDateTime, fmtDuration, fmtScore, scoreTone } from '@/lib/utils';
+import { formatPoints } from '@/lib/exam-config';
 
 const STATUS_BADGE = {
   correct: <Badge tone="success" dot>Đúng</Badge>,
@@ -21,8 +22,8 @@ export default function ResultView({ data, admin = false }) {
     <>
       <div className="card card-pad mb-6">
         <div className="result-hero">
-          <div className="score-ring" style={{ '--p': r.score * 10, '--ring': ring }} role="img" aria-label={`Điểm ${fmtScore(r.score)} trên 10`}>
-            <div><b>{fmtScore(r.score)}</b><span>/ 10 điểm</span></div>
+          <div className="score-ring" style={{ '--p': r.score * 10, '--ring': ring }} role="img" aria-label={`Điểm ${formatPoints(r.rawScore ?? r.score)} trên ${formatPoints(r.maxScore)}`}>
+            <div><b>{formatPoints(r.rawScore ?? r.score)}</b><span>/ {formatPoints(r.maxScore)} điểm</span></div>
           </div>
           <div style={{ flex: 1, minWidth: 280 }}>
             <div className="row wrap mb-2">
@@ -30,6 +31,7 @@ export default function ResultView({ data, admin = false }) {
               <span className="small muted">{fmtDateTime(attempt.submittedAt)}</span>
             </div>
             <h2 style={{ marginBottom: 4 }}>{attempt.exam.title}</h2>
+            <p className="small muted">Quy đổi thang 10: <b>{fmtScore(r.score)} / 10</b></p>
             <p className="muted">Học sinh: <b style={{ color: 'var(--n-900)' }}>{attempt.user.fullName}</b></p>
             <div className="result-stats">
               <div><b>{r.totalUnits}</b><span>Tổng số câu / ý</span></div>
@@ -75,7 +77,7 @@ export default function ResultView({ data, admin = false }) {
                 const mine = (sub = '') => answers[`${q.id}|${sub}`];
                 return (
                   <div key={q.id} className="review-q">
-                    <div className="row between mb-2 wrap"><b style={{ color: 'var(--primary-800)' }}>Câu {i + 1}</b>{STATUS_BADGE[pq.status]}</div>
+                    <div className="row between mb-2 wrap"><b style={{ color: 'var(--primary-800)' }}>Câu {i + 1} · {formatPoints(pq.points)} / {formatPoints(pq.maxPoints)} điểm</b>{STATUS_BADGE[pq.status]}</div>
                     <Rich text={q.content} className="mb-4" />
                     {s.type === 'MULTIPLE_CHOICE' && q.options.map((o) => {
                       const isMine = mine() === o.label;

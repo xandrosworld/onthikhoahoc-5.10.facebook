@@ -9,9 +9,11 @@ export const metadata = { title: 'Soạn đề thi' };
 
 function toState(exam) {
   const sections = { MULTIPLE_CHOICE: [], TRUE_FALSE: [], SHORT_ANSWER: [] };
+  const sectionSettings = {};
   for (const s of exam.sections) {
+    sectionSettings[s.type] = { pointsPerQuestion: s.pointsPerQuestion, tfScoring: s.tfScoring };
     for (const q of s.questions) {
-      const base = { id: q.id, content: q.content, explanation: q.explanation };
+      const base = { id: q.id, content: q.content, explanation: q.explanation, points: q.points };
       if (s.type === 'MULTIPLE_CHOICE') {
         sections.MULTIPLE_CHOICE.push({ ...base, options: ['A', 'B', 'C', 'D'].map((l) => { const o = q.options.find((x) => x.label === l); return { content: o?.content || '', isCorrect: !!o?.isCorrect }; }) });
       } else if (s.type === 'TRUE_FALSE') {
@@ -22,7 +24,7 @@ function toState(exam) {
       }
     }
   }
-  return { id: exam.id, title: exam.title, description: exam.description, grade: exam.grade, durationMinutes: exam.durationMinutes, shuffleQuestions: exam.shuffleQuestions, status: exam.status, sections };
+  return { id: exam.id, template: exam.template, sectionSettings, title: exam.title, description: exam.description, grade: exam.grade, durationMinutes: exam.durationMinutes, shuffleQuestions: exam.shuffleQuestions, status: exam.status, sections };
 }
 
 export default async function EditExam({ params }) {

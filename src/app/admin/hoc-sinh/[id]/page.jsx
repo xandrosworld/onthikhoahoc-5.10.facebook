@@ -36,8 +36,8 @@ export default async function StudentDetail({ params }) {
           </div>
           <div className="grid c2" style={{ gap: 12 }}>
             <div className="card card-pad" style={{ padding: 16 }}><div className="small muted">Lượt thi</div><b style={{ fontSize: '1.5rem' }}>{done.length}</b></div>
-            <div className="card card-pad" style={{ padding: 16 }}><div className="small muted">Điểm TB</div><b style={{ fontSize: '1.5rem' }}>{avg != null ? fmtScore(avg) : '—'}</b></div>
-            <div className="card card-pad" style={{ padding: 16 }}><div className="small muted">Điểm cao nhất</div><b style={{ fontSize: '1.5rem' }}>{best != null ? fmtScore(best) : '—'}</b></div>
+            <div className="card card-pad" style={{ padding: 16 }}><div className="small muted">Điểm TB / 10</div><b style={{ fontSize: '1.5rem' }}>{avg != null ? fmtScore(avg) : '—'}</b></div>
+            <div className="card card-pad" style={{ padding: 16 }}><div className="small muted">Điểm cao nhất / 10</div><b style={{ fontSize: '1.5rem' }}>{best != null ? fmtScore(best) : '—'}</b></div>
             <div className="card card-pad" style={{ padding: 16 }}><div className="small muted">Đăng ký khóa</div><b style={{ fontSize: '1.5rem' }}>{u.registrations.length}</b></div>
           </div>
           {u.registrations.length > 0 && (
@@ -52,7 +52,7 @@ export default async function StudentDetail({ params }) {
               <tbody>{u.attempts.map((a) => (
                 <tr key={a.id}>
                   <td className="cell-title">{a.exam.title}</td><td className="small">{fmtDateTime(a.startedAt)}</td>
-                  <td className="num">{a.result ? <ScorePill score={a.result.score} /> : <StatusBadge status={a.status} />}</td>
+                  <td className="num">{a.result ? <ScorePill score={a.result.score} rawScore={a.result.rawScore} maxScore={a.result.maxScore} /> : <StatusBadge status={a.status} />}</td>
                   <td>{a.result ? fmtDuration(a.result.durationSec) : '—'}</td>
                   <td>{a.result && <Link href={`/admin/ket-qua/${a.id}`} className="btn btn-sm">Chi tiết</Link>}</td>
                 </tr>))}</tbody>

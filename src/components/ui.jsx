@@ -87,9 +87,9 @@ export function paginate(searchParams, pageSize = 10) {
   return { page, skip: (page - 1) * pageSize, take: pageSize, pageSize };
 }
 
-export function ScorePill({ score }) {
+export function ScorePill({ score, rawScore, maxScore }) {
   const tone = score >= 8 ? 'success' : score >= 5 ? 'warning' : 'danger';
-  return <span className={`score-pill ${tone}`}>{(Math.round(score * 100) / 100).toLocaleString('vi-VN')}</span>;
+  return <span className={`score-pill ${tone}`} title={`Quy đổi: ${score.toLocaleString('vi-VN')} / 10`}>{(Math.round((rawScore ?? score) * 100) / 100).toLocaleString('vi-VN')}<small> / {(maxScore ?? 10).toLocaleString('vi-VN')}</small></span>;
 }
 
 export function SkeletonCards({ n = 3 }) {

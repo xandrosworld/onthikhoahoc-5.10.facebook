@@ -24,7 +24,7 @@ export default async function AdminHome() {
     ['chart', 'Tổng lượt thi', attempts, 'green'],
     ['clipboard', 'Đăng ký mới', newRegs, 'amber'],
     ['file', 'Bài viết', posts, ''],
-    ['award', 'Điểm TB toàn hệ thống', avg._avg.score ? (Math.round(avg._avg.score * 100) / 100).toLocaleString('vi-VN') : '—', 'green'],
+    ['award', 'Điểm TB toàn hệ thống / 10', avg._avg.score ? (Math.round(avg._avg.score * 100) / 100).toLocaleString('vi-VN') : '—', 'green'],
   ];
   return (
     <>
@@ -44,7 +44,7 @@ export default async function AdminHome() {
               <tbody>{recent.map((a) => (
                 <tr key={a.id}>
                   <td><Link href={`/admin/ket-qua/${a.id}`} className="cell-title">{a.user.fullName}</Link><div className="cell-sub">{fmtDateTime(a.submittedAt)}</div></td>
-                  <td>{a.exam.title}</td><td className="num"><ScorePill score={a.result.score} /></td><td>{fmtDuration(a.result.durationSec)}</td>
+                  <td>{a.exam.title}</td><td className="num"><ScorePill score={a.result.score} rawScore={a.result.rawScore} maxScore={a.result.maxScore} /></td><td>{fmtDuration(a.result.durationSec)}</td>
                 </tr>))}</tbody>
             </table></div>
           ) : <EmptyState icon="chart" title="Chưa có lượt thi nào">Kết quả sẽ hiển thị khi học sinh nộp bài.</EmptyState>}

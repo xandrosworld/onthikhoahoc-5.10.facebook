@@ -27,7 +27,7 @@ const STEPS = [
 export default async function Home() {
   const [courses, exams, posts, s] = await Promise.all([
     db.course.findMany({ where: { status: 'PUBLISHED' }, orderBy: [{ featured: 'desc' }, { createdAt: 'asc' }], take: 4 }),
-    db.exam.findMany({ where: { status: 'PUBLISHED' }, orderBy: { createdAt: 'desc' }, take: 3, include: { sections: { include: { _count: { select: { questions: true } } } } } }),
+    db.exam.findMany({ where: { status: 'PUBLISHED' }, orderBy: { createdAt: 'desc' }, take: 3, include: { sections: { include: { _count: { select: { questions: { where: { retired: false } } } } } } } }),
     db.post.findMany({ where: { status: 'PUBLISHED' }, orderBy: { publishedAt: 'desc' }, take: 3 }),
     getSettings(),
   ]);

@@ -7,6 +7,8 @@ import { SubmitButton } from '@/components/client-ui';
 import Icon from '@/components/Icon';
 import { startExamAction } from '@/app/actions/exam';
 import { SECTION_META, fmtDate, fmtDuration } from '@/lib/utils';
+import { examInclude } from '@/lib/attempts';
+import { examPointSummary, formatPoints } from '@/lib/exam-config';
 
 export const metadata = { title: 'Chi tiết đề thi' };
 
@@ -16,12 +18,14 @@ export default async function ExamIntro({ params, searchParams }) {
   const user = await requireUser(`/hoc-sinh/luyen-thi/${params.id}`);
   const exam = await db.exam.findFirst({
     where: { id: params.id, status: 'PUBLISHED' },
-    include: { sections: { orderBy: { order: 'asc' }, include: { _count: { select: { questions: true } } } } },
+    include: examInclude,
   });
   if (!exam) notFound();
   const attempts = await db.examAttempt.findMany({ where: { userId: user.id, examId: exam.id }, include: { result: true }, orderBy: { startedAt: 'desc' }, take: 5 });
   const running = attempts.find((a) => a.status === 'IN_PROGRESS' && a.deadlineAt > new Date());
-  const total = exam.sections.reduce((n, s) => n + s._count.questions, 0);
+  const total = exam.sections.reduce((n, s) => n + s.questions.length, 0);
+  const points = examPointSummary(exam.sections);
+  const maxPoints = points.reduce((sum, s) => sum + s.maxPoints, 0);
   return (
     <>
       <Breadcrumb items={[{ label: 'Luyện thi', href: '/hoc-sinh/luyen-thi' }, { label: exam.title }]} />
@@ -34,13 +38,13 @@ export default async function ExamIntro({ params, searchParams }) {
 
           <h3 className="mt-6">Cấu trúc đề</h3>
           <div className="stack" style={{ gap: 10 }}>
-            {exam.sections.map((s) => {
+            {exam.sections.filter(s => s.questions.length).map((s) => {
               const m = SECTION_META[s.type];
               return (
                 <div key={s.id} className="row card" style={{ padding: '14px 18px', boxShadow: 'none' }}>
                   <span className="avatar" style={{ borderRadius: 8, width: 40, height: 40 }}>{m.roman}</span>
                   <div className="grow" style={{ flex: 1 }}><b>{m.title} – {m.name}</b><div className="small muted">{m.hint}</div></div>
-                  <Badge tone={s._count.questions ? 'primary' : 'neutral'}>{s._count.questions} câu</Badge>
+                  <Badge tone="primary">{s.questions.length} câu · {formatPoints(points.find(p => p.type === s.type)?.maxPoints)} điểm</Badge>
                 </div>
               );
             })}
@@ -60,6 +64,7 @@ export default async function ExamIntro({ params, searchParams }) {
             <ul className="info-list">
               <li><span>Thời gian</span><span>{exam.durationMinutes} phút</span></li>
               <li><span>Tổng số câu</span><span>{total}</span></li>
+              <li><span>Tổng điểm đề</span><span>{formatPoints(maxPoints)} điểm</span></li>
               <li><span>Hoán đổi câu hỏi</span><span>{exam.shuffleQuestions ? 'Bật' : 'Tắt'}</span></li>
             </ul>
             <form action={startExamAction} className="mt-4">
@@ -73,7 +78,7 @@ export default async function ExamIntro({ params, searchParams }) {
             {attempts.filter((a) => a.result).length ? attempts.filter((a) => a.result).map((a) => (
               <Link key={a.id} href={`/hoc-sinh/ket-qua/${a.id}`} className="list-row" style={{ color: 'inherit' }}>
                 <div className="grow"><div className="cell-title">{fmtDate(a.submittedAt)}</div><div className="cell-sub">{fmtDuration(a.result.durationSec)}</div></div>
-                <ScorePill score={a.result.score} />
+                <ScorePill score={a.result.score} rawScore={a.result.rawScore} maxScore={a.result.maxScore} />
               </Link>
             )) : <p className="muted small card-pad mb-0">Bạn chưa làm đề này lần nào.</p>}
           </div>

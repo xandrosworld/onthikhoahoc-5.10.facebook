@@ -1,12 +1,14 @@
 import { db } from './db';
 import { gradeAttempt, shuffle } from './grading';
 import { SECTION_TYPES } from './utils';
+import { questionPoints } from './exam-config';
 
 export const examInclude = {
   sections: {
     orderBy: { order: 'asc' },
     include: {
       questions: {
+        where: { retired: false },
         orderBy: { order: 'asc' },
         include: {
           options: { orderBy: { label: 'asc' } },
@@ -35,18 +37,20 @@ export async function startAttempt(userId, examId) {
   }
 
   const now = new Date();
-  const attempt = await db.examAttempt.create({
-    data: { examId, userId, startedAt: now, deadlineAt: new Date(now.getTime() + exam.durationMinutes * 60000) },
+  return db.$transaction(async tx => {
+    const current = await tx.exam.findUnique({ where: { id: examId }, include: examInclude });
+    if (!current || current.status !== 'PUBLISHED') throw new Error('Đề thi chưa được công bố.');
+    const sections = current.sections.map(s => ({ ...s, questions: current.shuffleQuestions ? shuffle(s.questions) : s.questions }));
+    const attempt = await tx.examAttempt.create({ data: { examId, userId, startedAt: now, deadlineAt: new Date(now.getTime() + current.durationMinutes * 60000), snapshot: JSON.stringify({ title: current.title, durationMinutes: current.durationMinutes, sections }) } });
+    const rows = sections.flatMap(s => s.questions.map((q, position) => ({ attemptId: attempt.id, sectionType: s.type, questionId: q.id, position })));
+    await tx.attemptQuestionOrder.createMany({ data: rows });
+    return attempt;
   });
-  const rows = [];
-  for (const s of exam.sections) {
-    // Chỉ hoán đổi TRONG từng phần — không bao giờ trộn giữa các phần.
-    const ids = s.questions.map((q) => q.id);
-    const ordered = exam.shuffleQuestions ? shuffle(ids) : ids;
-    ordered.forEach((questionId, i) => rows.push({ attemptId: attempt.id, sectionType: s.type, questionId, position: i }));
-  }
-  await db.attemptQuestionOrder.createMany({ data: rows });
-  return attempt;
+}
+
+export function attemptExam(attempt) {
+  if (attempt.snapshot) return JSON.parse(attempt.snapshot);
+  return attempt.exam;
 }
 
 /** Dữ liệu để dựng giao diện làm bài (KHÔNG chứa đáp án đúng). */
@@ -56,6 +60,8 @@ export async function loadAttemptForTaking(attemptId) {
     include: { exam: { include: examInclude }, orders: true, answers: true, user: true },
   });
   if (!attempt) return null;
+  const savedExam = attemptExam(attempt);
+  attempt.exam = { ...attempt.exam, ...savedExam };
   const qMap = new Map();
   for (const s of attempt.exam.sections) for (const q of s.questions) qMap.set(q.id, q);
   const sections = SECTION_TYPES.map((type) => {
@@ -66,6 +72,7 @@ export async function loadAttemptForTaking(attemptId) {
       .map((q) => ({
         id: q.id,
         content: q.content,
+        points: questionPoints(savedExam.sections, savedExam.sections.find(s => s.questions.some(item => item.id === q.id)), q),
         options: q.options.map((o) => ({ label: o.label, content: o.content })),
         statements: q.statements.map((s) => ({ label: s.label, content: s.content })),
       }));
@@ -88,14 +95,11 @@ export async function finalizeAttempt(attemptId, { auto = false } = {}) {
   const now = Date.now();
   const end = Math.min(now, attempt.deadlineAt.getTime());
   const durationSec = Math.max(0, Math.round((end - attempt.startedAt.getTime()) / 1000));
-  const answers = {};
-  for (const a of attempt.answers) answers[`${a.questionId}|${a.sub}`] = a.value;
-  const g = gradeAttempt(attempt.exam.sections, answers, durationSec);
-  const { perQuestion, ...summary } = g;
-
   return db.$transaction(async (tx) => {
-    const fresh = await tx.examAttempt.findUnique({ where: { id: attemptId }, include: { result: true } });
+    const fresh = await tx.examAttempt.findUnique({ where: { id: attemptId }, include: { result: true, answers: true, exam: { include: examInclude } } });
     if (fresh.result) return fresh.result;
+    const answers = Object.fromEntries(fresh.answers.map(a => [`${a.questionId}|${a.sub}`, a.value]));
+    const { perQuestion, ...summary } = gradeAttempt(attemptExam(fresh).sections, answers, durationSec);
     await tx.examAttempt.update({
       where: { id: attemptId },
       data: {
@@ -108,6 +112,8 @@ export async function finalizeAttempt(attemptId, { auto = false } = {}) {
       data: {
         attemptId,
         score: summary.score,
+        rawScore: summary.rawScore,
+        maxScore: summary.maxScore,
         totalUnits: summary.totalUnits,
         correct: summary.correct,
         wrong: summary.wrong,
@@ -126,6 +132,7 @@ export async function loadAttemptReview(attemptId) {
     include: { exam: { include: examInclude }, orders: true, answers: true, result: true, user: true },
   });
   if (!attempt || !attempt.result) return null;
+  attempt.exam = { ...attempt.exam, ...attemptExam(attempt) };
   const answers = {};
   for (const a of attempt.answers) answers[`${a.questionId}|${a.sub}`] = a.value;
   const g = gradeAttempt(attempt.exam.sections, answers, attempt.result.durationSec);

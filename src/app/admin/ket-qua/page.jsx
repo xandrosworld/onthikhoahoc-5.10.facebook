@@ -42,7 +42,7 @@ export default async function AdminResults({ searchParams }) {
                 <tr key={a.id}>
                   <td><Link href={`/admin/hoc-sinh/${a.userId}`} className="cell-title">{a.user.fullName}</Link><div className="cell-sub">{a.user.email}</div></td>
                   <td>{a.exam.title}{a.autoSubmitted && <div className="cell-sub">Hết giờ tự nộp</div>}</td>
-                  <td className="num"><ScorePill score={a.result.score} /></td>
+                  <td className="num"><ScorePill score={a.result.score} rawScore={a.result.rawScore} maxScore={a.result.maxScore} /></td>
                   <td>{a.result.correct}/{a.result.totalUnits}</td>
                   <td>{fmtDuration(a.result.durationSec)}</td>
                   <td className="small">{fmtDateTime(a.submittedAt)}</td>

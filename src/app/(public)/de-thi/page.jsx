@@ -15,7 +15,7 @@ export default async function PublicExams({ searchParams }) {
   const exams = await db.exam.findMany({
     where: { status: 'PUBLISHED', ...(grade ? { grade } : {}) },
     orderBy: { createdAt: 'desc' },
-    include: { sections: { include: { _count: { select: { questions: true } } } } },
+    include: { sections: { include: { _count: { select: { questions: { where: { retired: false } } } } } } },
   });
   const chips = [['', 'Tất cả'], ['10', 'Khối 10'], ['11', 'Khối 11'], ['12', 'Khối 12']];
   return (
@@ -24,7 +24,7 @@ export default async function PublicExams({ searchParams }) {
         <div className="container">
           <nav className="breadcrumb" aria-label="Breadcrumb"><Link href="/">Trang chủ</Link><span>/</span><span aria-current="page">Luyện thi</span></nav>
           <h1>Luyện thi trực tuyến</h1>
-          <p>Đề thi theo cấu trúc mới gồm ba phần. Làm bài có tính giờ, nộp bài là có điểm ngay, xem lại đáp án từng câu.</p>
+          <p>Đề luyện tập với trắc nghiệm, đúng/sai và trả lời ngắn theo mẫu giáo viên chọn. Làm bài có tính giờ, nhận điểm và xem lại đáp án từng câu.</p>
         </div>
       </section>
       <section className="section" style={{ paddingTop: 40 }}>

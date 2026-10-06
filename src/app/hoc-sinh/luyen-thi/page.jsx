@@ -14,7 +14,7 @@ export default async function PracticeList({ searchParams }) {
   const user = await requireUser('/hoc-sinh/luyen-thi');
   const grade = searchParams?.khoi || '';
   const [exams, attempts] = await Promise.all([
-    db.exam.findMany({ where: { status: 'PUBLISHED', ...(grade ? { grade } : {}) }, orderBy: { createdAt: 'desc' }, include: { sections: { include: { _count: { select: { questions: true } } } } } }),
+    db.exam.findMany({ where: { status: 'PUBLISHED', ...(grade ? { grade } : {}) }, orderBy: { createdAt: 'desc' }, include: { sections: { include: { _count: { select: { questions: { where: { retired: false } } } } } } } }),
     db.examAttempt.findMany({ where: { userId: user.id }, include: { result: true }, orderBy: { startedAt: 'desc' } }),
   ]);
   const byExam = new Map();

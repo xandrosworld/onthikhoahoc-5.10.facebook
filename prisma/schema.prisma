@@ -95,6 +95,7 @@ model CourseRegistration {
 
 // status: DRAFT | PUBLISHED
 model Exam {
+  template         String   @default("FULL")
   id               String   @id @default(cuid())
   title            String
   description      String   @default("")
@@ -111,6 +112,8 @@ model Exam {
 
 // type: MULTIPLE_CHOICE | TRUE_FALSE | SHORT_ANSWER
 model ExamSection {
+  pointsPerQuestion Float?
+  tfScoring String @default("TIERED")
   id       String @id @default(cuid())
   examId   String
   type     String
@@ -122,6 +125,8 @@ model ExamSection {
 }
 
 model Question {
+  points      Float?
+  retired     Boolean @default(false)
   id          String   @id @default(cuid())
   sectionId   String
   order       Int
@@ -166,6 +171,7 @@ model ShortAnswer {
 
 // status: IN_PROGRESS | SUBMITTED | EXPIRED (tự nộp do hết giờ)
 model ExamAttempt {
+  snapshot    String?
   id          String    @id @default(cuid())
   examId      String
   userId      String
@@ -212,6 +218,8 @@ model StudentAnswer {
 }
 
 model ExamResult {
+  rawScore    Float?
+  maxScore    Float @default(10)
   id          String   @id @default(cuid())
   attemptId   String   @unique
   score       Float

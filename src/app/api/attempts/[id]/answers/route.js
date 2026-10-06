@@ -27,9 +27,15 @@ export async function POST(req, { params }) {
     if (!valid.has(qid)) continue;
     const value = String(raw ?? '').slice(0, 200);
     const where = { attemptId_questionId_sub: { attemptId: attempt.id, questionId: qid, sub } };
-    if (value === '') ops.push(db.studentAnswer.deleteMany({ where: { attemptId: attempt.id, questionId: qid, sub } }));
-    else ops.push(db.studentAnswer.upsert({ where, create: { attemptId: attempt.id, questionId: qid, sub, value }, update: { value } }));
+    ops.push({ qid, sub, value, where });
   }
-  if (ops.length) await db.$transaction(ops);
+  if (ops.length) await db.$transaction(async tx => {
+    const current = await tx.examAttempt.findUnique({ where: { id: attempt.id } });
+    if (current.status !== 'IN_PROGRESS') return;
+    for (const { qid, sub, value, where } of ops) {
+      if (value === '') await tx.studentAnswer.deleteMany({ where: { attemptId: attempt.id, questionId: qid, sub } });
+      else await tx.studentAnswer.upsert({ where, create: { attemptId: attempt.id, questionId: qid, sub, value }, update: { value } });
+    }
+  });
   return NextResponse.json({ ok: true, saved: ops.length, serverTime: Date.now() });
 }

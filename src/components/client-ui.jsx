@@ -99,7 +99,7 @@ export function ConfirmButton({ action, fields = {}, title = 'Xác nhận', mess
         footer={
           <>
             <button type="button" className="btn" onClick={() => setOpen(false)}>Hủy</button>
-            <form action={action} ref={formRef} onSubmit={() => setTimeout(() => setOpen(false), 0)}>
+            <form action={async (fd) => { await action(fd); setOpen(false); }} ref={formRef}>
               {Object.entries(fields).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
               <SubmitButton className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`} data-autofocus>{confirmText}</SubmitButton>
             </form>

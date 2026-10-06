@@ -8,6 +8,7 @@ import { Modal, Switch, useToast } from '@/components/client-ui';
 import Icon from '@/components/Icon';
 import { saveExamAction } from '@/app/actions/admin';
 import { SECTION_META } from '@/lib/utils';
+import { EXAM_TEMPLATES, DEFAULT_POINTS, templateTypes, questionPoints, examPointSummary, formatPoints, validPoints, validateExamConfig } from '@/lib/exam-config';
 
 const TYPES = ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'SHORT_ANSWER'];
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -21,6 +22,9 @@ const blank = {
 
 function withKeys(state) {
   const s = JSON.parse(JSON.stringify(state));
+  s.template ||= 'FULL';
+  s.sectionSettings ||= {};
+  for (const t of TYPES) s.sectionSettings[t] ||= { pointsPerQuestion: s.id ? null : DEFAULT_POINTS[t], tfScoring: 'TIERED' };
   for (const t of TYPES) s.sections[t] = (s.sections[t] || []).map((q) => ({ ...q, k: uid() }));
   return s;
 }
@@ -36,10 +40,10 @@ function issueOf(type, q) {
   return null;
 }
 
-function QuestionPreview({ type, q, no }) {
+function QuestionPreview({ type, q, no, points }) {
   return (
     <div>
-      <div className="q-title">Câu {no}</div>
+      <div className="q-title">Câu {no} <span className="small muted">· {formatPoints(points)} điểm</span></div>
       <Rich className="q-content" text={q.content || '*(chưa có nội dung)*'} />
       {type === 'MULTIPLE_CHOICE' && q.options.map((o, i) => (
         <div key={i} className={`choice ${o.isCorrect ? 'selected' : ''}`} style={{ cursor: 'default' }}><b>{'ABCD'[i]}</b><Rich as="span" text={o.content || '…'} /></div>
@@ -73,6 +77,8 @@ export default function ExamBuilder({ initial, attemptCount }) {
   const [draftBanner, setDraftBanner] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [fullPreview, setFullPreview] = useState(false);
+  const [pendingTemplate, setPendingTemplate] = useState(null);
+  const [applyPoints, setApplyPoints] = useState(null);
   const draftKey = `exam-draft:${initial.id || 'new'}`;
   const first = useRef(true);
 
@@ -103,9 +109,23 @@ export default function ExamBuilder({ initial, attemptCount }) {
     return () => window.removeEventListener('beforeunload', h);
   }, [dirty]);
 
-  const counts = useMemo(() => Object.fromEntries(TYPES.map((t) => [t, exam.sections[t].length])), [exam]);
-  const issues = useMemo(() => TYPES.reduce((n, t) => n + exam.sections[t].filter((q) => issueOf(t, q)).length, 0), [exam]);
+  const activeTypes = templateTypes(exam.template);
+  const scoringSections = activeTypes.map(type => ({ type, ...exam.sectionSettings[type], questions: exam.sections[type] }));
+  const pointSummary = examPointSummary(scoringSections);
+  const totalPoints = pointSummary.reduce((sum, s) => sum + s.maxPoints, 0);
+  const pointsOf = (type, q) => questionPoints(scoringSections, scoringSections.find(s => s.type === type), q);
+  const counts = useMemo(() => Object.fromEntries(TYPES.map((t) => [t, templateTypes(exam.template).includes(t) ? exam.sections[t].length : 0])), [exam]);
+  const issues = activeTypes.reduce((n, t) => n + exam.sections[t].filter((q) => issueOf(t, q)).length, 0);
   const total = counts.MULTIPLE_CHOICE + counts.TRUE_FALSE + counts.SHORT_ANSWER;
+
+  function chooseTemplate(template) {
+    const hidden = activeTypes.filter(t => !templateTypes(template).includes(t));
+    if (hidden.some(t => exam.sections[t].length)) setPendingTemplate(template);
+    else setMeta('template', template);
+  }
+  function setSection(type, patch) {
+    update(e => { e.sectionSettings = { ...e.sectionSettings, [type]: { ...e.sectionSettings[type], ...patch } }; });
+  }
 
   function addQuestion(type) {
     const q = blank[type]();
@@ -132,6 +152,8 @@ export default function ExamBuilder({ initial, attemptCount }) {
   async function save(publishOverride) {
     if (hasImageUploads) { setError('Chờ ảnh tải lên xong trước khi lưu đề thi.'); return; }
     setError('');
+    const configError = validateExamConfig(exam);
+    if (configError) { setError(configError); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     setSaving(true);
     const status = publishOverride === true ? 'PUBLISHED' : publishOverride === false ? 'DRAFT' : exam.status;
     const payload = { ...exam, status, sections: Object.fromEntries(TYPES.map((t) => [t, exam.sections[t].map(({ k, ...q }) => q)])) };
@@ -154,7 +176,7 @@ export default function ExamBuilder({ initial, attemptCount }) {
   return (
     <>
       <div className="page-title">
-        <div><h1>{initial.id ? 'Sửa đề thi' : 'Tạo đề thi mới'}</h1><p>Soạn đề trực tiếp theo 3 phần cố định. Gõ công thức bằng LaTeX trong dấu <code>$ … $</code>.</p></div>
+        <div><h1>{initial.id ? 'Sửa đề thi' : 'Tạo đề thi mới'}</h1><p>Chọn mẫu đề, soạn câu hỏi và thiết lập điểm. Công thức đặt trong dấu <code>$ … $</code>.</p></div>
         <div className="row wrap">
           <button className="btn" onClick={() => setFullPreview(true)} disabled={!total || hasImageUploads}><Icon name="eye" size={18} />Xem thử đề</button>
           <button className="btn" onClick={() => save()} disabled={saving || hasImageUploads}><Icon name="save" size={18} />{saving ? 'Đang lưu…' : hasImageUploads ? 'Đang tải ảnh…' : 'Lưu'}</button>
@@ -164,15 +186,23 @@ export default function ExamBuilder({ initial, attemptCount }) {
 
       {draftBanner && (
         <div className="alert alert-warning" role="alert"><Icon name="info" size={18} /><div style={{ flex: 1 }}>Có bản nháp chưa lưu từ {new Date(draftBanner.savedAt).toLocaleString('vi-VN')}. Bạn muốn khôi phục?</div>
-          <button className="btn btn-sm" onClick={() => { setExam(draftBanner.exam); setDirty(true); setDraftBanner(null); }}>Khôi phục</button>
+          <button className="btn btn-sm" onClick={() => { setExam(withKeys(draftBanner.exam)); setDirty(true); setDraftBanner(null); }}>Khôi phục</button>
           <button className="btn btn-sm btn-ghost" onClick={() => { try { localStorage.removeItem(draftKey); } catch {} setDraftBanner(null); }}>Bỏ qua</button></div>
       )}
       {error && <div className="alert alert-error" role="alert"><Icon name="alert" size={18} />{error}</div>}
-      {attemptCount > 0 && <div className="alert alert-info"><Icon name="info" size={18} />Đề này đã có <b>{attemptCount} lượt thi</b>. Kết quả cũ được giữ nguyên; xóa một câu hỏi sẽ xóa bài làm của câu đó trong các lượt thi cũ.</div>}
+      {attemptCount > 0 && <div className="alert alert-info"><Icon name="info" size={18} />Đề này đã có <b>{attemptCount} lượt thi</b>. Thay đổi nội dung và điểm áp dụng cho lượt thi mới; các lượt đã bắt đầu giữ đề và cách chấm cũ.</div>}
+
+      <fieldset className="card card-pad exam-templates" disabled={saving || hasImageUploads}>
+        <legend>Chọn mẫu đề thi</legend>
+        <div className="template-options">{EXAM_TEMPLATES.map(template => <label key={template.id} className={`template-option ${exam.template === template.id ? 'selected' : ''}`}>
+          <input type="radio" name="exam-template" value={template.id} checked={exam.template === template.id} onChange={() => chooseTemplate(template.id)} />
+          <span><b>{template.name}</b><small>{template.description}</small></span>
+        </label>)}</div>
+      </fieldset>
 
       <div className="builder-grid">
         <div>
-          {TYPES.map((type) => {
+          {activeTypes.map((type) => {
             const m = SECTION_META[type];
             const qs = exam.sections[type];
             return (
@@ -180,6 +210,13 @@ export default function ExamBuilder({ initial, attemptCount }) {
                 <div className="b-section-head">
                   <div><h3 id={`sec-${type}`}>{m.title} – {m.name}</h3><span className="small muted">{m.hint} · {qs.length} câu</span></div>
                   <button className="btn btn-primary btn-sm" onClick={() => addQuestion(type)}><Icon name="plus" size={16} />Thêm câu hỏi</button>
+                </div>
+                <div className="section-scoring">
+                  <div className="field"><label htmlFor={`points-${type}`}>Điểm mặc định mỗi câu · {m.title}</label><input id={`points-${type}`} className="input" type="number" min="0.0001" max="100" step="any" value={exam.sectionSettings[type].pointsPerQuestion ?? ''} placeholder="Tự chia theo cấu trúc cũ" onChange={e => setSection(type, { pointsPerQuestion: e.target.value })} />
+                  <p className="field-hint">Áp dụng cho câu mới và câu chưa đặt điểm riêng.</p></div>
+                  <button type="button" className="btn btn-sm" disabled={!qs.length || !validPoints(exam.sectionSettings[type].pointsPerQuestion)} onClick={() => setApplyPoints(type)}>Áp dụng cho mọi câu trong phần</button>
+                  <b className="section-total">Tổng phần: {formatPoints(pointSummary.find(s => s.type === type)?.maxPoints)} điểm</b>
+                  {type === 'TRUE_FALSE' && <div className="field scoring-rule"><label htmlFor="tf-scoring">Cách chấm Đúng / Sai</label><select id="tf-scoring" className="select" value={exam.sectionSettings[type].tfScoring} onChange={e => setSection(type, { tfScoring: e.target.value })}><option value="TIERED">Theo số ý đúng (10% · 25% · 50% · 100%)</option><option value="EQUAL">Chia đều điểm cho các ý</option></select><p className="field-hint">Điểm nhập ở trên là điểm tối đa của cả câu gồm 4 ý. {exam.sectionSettings[type].tfScoring === 'EQUAL' ? 'Mỗi ý đúng nhận 25% điểm câu.' : 'Đúng 1 / 2 / 3 / 4 ý nhận lần lượt 10% / 25% / 50% / 100% điểm câu.'}</p></div>}
                 </div>
                 {qs.length === 0 && (
                   <div className="empty" style={{ padding: '36px 24px' }}>
@@ -195,6 +232,7 @@ export default function ExamBuilder({ initial, attemptCount }) {
                       <div className="b-q-head" onClick={() => toggle(q.k)}>
                         <button type="button" className="btn btn-icon btn-ghost" aria-expanded={isOpen} aria-label={isOpen ? 'Thu gọn' : 'Mở rộng'} onClick={(e) => { e.stopPropagation(); toggle(q.k); }}><Icon name={isOpen ? 'down' : 'right'} size={18} /></button>
                         <span className="no">Câu {i + 1}</span>
+                        <span className="badge badge-primary">{formatPoints(pointsOf(type, q))} đ</span>
                         <span className="prev">{strip(q.content) || <em className="muted">(chưa có nội dung)</em>}</span>
                         {iss ? <span className="badge badge-warning">{iss}</span> : <span className="badge badge-success">Hợp lệ</span>}
                         <div className="row" style={{ gap: 2 }} onClick={(e) => e.stopPropagation()}>
@@ -209,8 +247,9 @@ export default function ExamBuilder({ initial, attemptCount }) {
                           <div className="row between mt-4 mb-2"><span className="small muted">Soạn nội dung câu hỏi</span>
                             <div className="seg" style={{ height: 32 }}><button type="button" className={!previewQ[q.k] ? 'on-t' : ''} style={!previewQ[q.k] ? { background: 'var(--primary-600)' } : {}} onClick={() => setPreviewQ((p) => ({ ...p, [q.k]: false }))}>Soạn</button><button type="button" className={previewQ[q.k] ? 'on-t' : ''} style={previewQ[q.k] ? { background: 'var(--primary-600)' } : {}} onClick={() => setPreviewQ((p) => ({ ...p, [q.k]: true }))}>Xem trước</button></div>
                           </div>
+                          <div className="question-scoring"><label htmlFor={`score-${q.k}`}>Điểm riêng câu {i + 1}</label><input id={`score-${q.k}`} type="number" min="0.0001" max="100" step="any" className="input" value={q.points ?? ''} placeholder={formatPoints(pointsOf(type, { ...q, points: null }))} onChange={e => setQ(type, i, { points: e.target.value === '' ? null : e.target.value })} /><span className="field-hint">Để trống để dùng điểm mặc định của phần.</span></div>
                           {previewQ[q.k] ? (
-                            <div className="card card-pad" style={{ boxShadow: 'none', background: 'var(--n-25)' }}><QuestionPreview type={type} q={q} no={i + 1} /></div>
+                            <div className="card card-pad" style={{ boxShadow: 'none', background: 'var(--n-25)' }}><QuestionPreview type={type} q={q} no={i + 1} points={pointsOf(type, q)} /></div>
                           ) : (
                             <>
                               <div className="field"><MathField id={`c-${q.k}`} label="Nội dung câu hỏi" value={q.content} onChange={(v) => setQ(type, i, { content: v })} onUploadStateChange={trackImageUpload} rows={3} placeholder="Ví dụ: Cho hàm số $f(x)=x^3-3x+2$. Giá trị cực đại của hàm số là" /></div>
@@ -295,11 +334,12 @@ export default function ExamBuilder({ initial, attemptCount }) {
           <div className="card card-pad">
             <h4>Tổng quan</h4>
             <ul className="info-list">
-              {TYPES.map((t) => <li key={t}><span>{SECTION_META[t].title}</span><span>{counts[t]} câu</span></li>)}
+              {activeTypes.map((t) => <li key={t}><span>{SECTION_META[t].title}</span><span>{counts[t]} câu · {formatPoints(pointSummary.find(s => s.type === t)?.maxPoints)} đ</span></li>)}
               <li><span>Tổng cộng</span><span>{total} câu</span></li>
+              <li><span>Tổng điểm đề</span><strong data-testid="exam-total-points">{formatPoints(totalPoints)} điểm</strong></li>
               <li><span>Câu chưa hợp lệ</span><span style={{ color: issues ? 'var(--danger-600)' : 'var(--success-600)' }}>{issues}</span></li>
             </ul>
-            <p className="field-hint mt-2">Thang điểm 10: Phần I 3đ · Phần II 4đ (chấm theo số ý đúng: 1 ý 0,1 · 2 ý 0,25 · 3 ý 0,5 · 4 ý 1) · Phần III 3đ. Phần bỏ trống sẽ được chia lại điểm.</p>
+            <p className="field-hint mt-2">Điểm bài làm là tổng điểm đạt được từng câu. Kết quả có thêm điểm quy đổi thang 10 để so sánh giữa các đề.</p>
           </div>
           <div className="card card-pad small">
             <h4>Gõ công thức</h4>
@@ -328,12 +368,19 @@ export default function ExamBuilder({ initial, attemptCount }) {
         Câu hỏi sẽ bị xóa khỏi đề khi bạn bấm Lưu.
       </Modal>
 
+      <Modal open={!!pendingTemplate} onClose={() => setPendingTemplate(null)} title="Đổi mẫu đề?" footer={<><button className="btn" onClick={() => setPendingTemplate(null)}>Giữ mẫu hiện tại</button><button className="btn btn-primary" onClick={() => { setMeta('template', pendingTemplate); setPendingTemplate(null); }}>Đổi mẫu đề</button></>}>
+        Các phần không thuộc mẫu mới sẽ được bỏ khỏi đề khi lưu. Trước khi lưu, bạn có thể chọn lại mẫu cũ để lấy lại câu hỏi. Lượt thi đã bắt đầu vẫn giữ nguyên đề cũ.
+      </Modal>
+      <Modal open={!!applyPoints} onClose={() => setApplyPoints(null)} title="Áp dụng điểm cho cả phần?" footer={<><button className="btn" onClick={() => setApplyPoints(null)}>Hủy</button><button className="btn btn-primary" onClick={() => { update(e => { e.sections[applyPoints] = e.sections[applyPoints].map(q => ({ ...q, points: null })); }); setApplyPoints(null); }}>Áp dụng điểm</button></>}>
+        Tất cả câu hỏi trong phần sẽ dùng điểm mặc định {applyPoints ? formatPoints(exam.sectionSettings[applyPoints].pointsPerQuestion) : ''}. Các điểm riêng đã đặt sẽ được thay thế.
+      </Modal>
       <Modal open={fullPreview} onClose={() => setFullPreview(false)} wide title={`Xem thử: ${exam.title || 'Đề thi'}`}
         footer={<button className="btn btn-primary" onClick={() => setFullPreview(false)}>Đóng</button>}>
-        {TYPES.filter((t) => exam.sections[t].length).map((t) => (
+        <p><b>Tổng điểm đề: {formatPoints(totalPoints)} điểm</b></p>
+        {activeTypes.filter((t) => exam.sections[t].length).map((t) => (
           <div key={t}>
             <div style={{ background: 'var(--primary-50)', padding: '8px 14px', fontWeight: 700, borderRadius: 6, margin: '12px 0' }}>{SECTION_META[t].title} – {SECTION_META[t].name}</div>
-            {exam.sections[t].map((q, i) => <div key={q.k} className="review-q" style={{ padding: '16px 4px' }}><QuestionPreview type={t} q={q} no={i + 1} /></div>)}
+            {exam.sections[t].map((q, i) => <div key={q.k} className="review-q" style={{ padding: '16px 4px' }}><QuestionPreview type={t} q={q} no={i + 1} points={pointsOf(t, q)} /></div>)}
           </div>
         ))}
       </Modal>

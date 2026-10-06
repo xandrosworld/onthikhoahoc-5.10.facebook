@@ -225,7 +225,7 @@ export default function ExamRunner({ attemptId, title, studentName, sections, in
       <div className="exam-body">
         <main id="main" className="card q-card" aria-live="polite">
           <div className="q-sec">{meta.title} · {meta.name}</div>
-          <div className="q-title">Câu {q.no} <span className="muted" style={{ fontWeight: 500 }}>/ {q.total}</span></div>
+          <div className="q-title">Câu {q.no} <span className="muted" style={{ fontWeight: 500 }}>/ {q.total} · {Number(q.points || 0).toLocaleString('vi-VN', { maximumFractionDigits: 4 })} điểm</span></div>
           <Rich className="q-content" text={q.content} />
 
           {q.type === 'MULTIPLE_CHOICE' && (

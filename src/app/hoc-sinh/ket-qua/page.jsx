@@ -29,7 +29,7 @@ export default async function MyResults({ searchParams }) {
                     <tr key={a.id}>
                       <td><div className="cell-title">{a.exam.title}</div><div className="cell-sub">{a.result.correct}/{a.result.totalUnits} câu/ý đúng</div></td>
                       <td>{fmtDateTime(a.submittedAt)}</td>
-                      <td className="num"><ScorePill score={a.result.score} /></td>
+                      <td className="num"><ScorePill score={a.result.score} rawScore={a.result.rawScore} maxScore={a.result.maxScore} /></td>
                       <td>{fmtDuration(a.result.durationSec)}</td>
                       <td><StatusBadge status={a.status} /></td>
                       <td><div className="actions"><Link className="btn btn-sm" href={`/hoc-sinh/ket-qua/${a.id}`}>Xem chi tiết</Link></div></td>

@@ -13,7 +13,7 @@ export default async function StudentHome({ searchParams }) {
   searchParams = await searchParams;
   const user = await requireUser();
   const [exams, attempts] = await Promise.all([
-    db.exam.findMany({ where: { status: 'PUBLISHED' }, orderBy: { createdAt: 'desc' }, include: { sections: { include: { _count: { select: { questions: true } } } } } }),
+    db.exam.findMany({ where: { status: 'PUBLISHED' }, orderBy: { createdAt: 'desc' }, include: { sections: { include: { _count: { select: { questions: { where: { retired: false } } } } } } } }),
     db.examAttempt.findMany({ where: { userId: user.id }, orderBy: { startedAt: 'desc' }, include: { exam: true, result: true } }),
   ]);
   const done = attempts.filter((a) => a.result);
@@ -43,7 +43,7 @@ export default async function StudentHome({ searchParams }) {
         <div className="card stat-card"><span className="ic"><Icon name="clipboard" /></span><div><b>{exams.length}</b><span>Đề hiện có</span></div></div>
         <div className="card stat-card"><span className="ic amber"><Icon name="zap" /></span><div><b>{fresh.length}</b><span>Đề mới chưa làm</span></div></div>
         <div className="card stat-card"><span className="ic green"><Icon name="check" /></span><div><b>{done.length}</b><span>Lượt đã làm</span></div></div>
-        <div className="card stat-card"><span className="ic"><Icon name="award" /></span><div><b>{done.length ? fmtScore(avg) : '—'}</b><span>Điểm trung bình</span></div></div>
+        <div className="card stat-card"><span className="ic"><Icon name="award" /></span><div><b>{done.length ? fmtScore(avg) : '—'}</b><span>Điểm trung bình / 10</span></div></div>
       </div>
 
       <div className="grid split">
@@ -64,7 +64,7 @@ export default async function StudentHome({ searchParams }) {
         </section>
 
         <section className="card" aria-labelledby="rec-h">
-          <div className="card-head"><h3 id="rec-h">Điểm gần đây</h3><Link href="/hoc-sinh/ket-qua" className="small">Tất cả</Link></div>
+          <div className="card-head"><h3 id="rec-h">Điểm gần đây (thang 10)</h3><Link href="/hoc-sinh/ket-qua" className="small">Tất cả</Link></div>
           {recent.length ? (
             <>
               <div className="card-pad" style={{ paddingBottom: 8 }}>
@@ -77,7 +77,7 @@ export default async function StudentHome({ searchParams }) {
               {recent.slice(0, 3).map((a) => (
                 <Link key={a.id} href={`/hoc-sinh/ket-qua/${a.id}`} className="list-row" style={{ color: 'inherit' }}>
                   <div className="grow"><div className="cell-title">{a.exam.title}</div><div className="cell-sub">{fmtDate(a.submittedAt)} · {fmtDuration(a.result.durationSec)}</div></div>
-                  <ScorePill score={a.result.score} />
+                  <ScorePill score={a.result.score} rawScore={a.result.rawScore} maxScore={a.result.maxScore} />
                 </Link>
               ))}
             </>

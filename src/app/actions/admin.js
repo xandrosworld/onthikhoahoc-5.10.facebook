@@ -7,6 +7,8 @@ import { requireAdmin } from '@/lib/auth';
 import { slugify, parseSyllabusText } from '@/lib/utils';
 import { DEFAULT_SETTINGS } from '@/lib/site';
 import { validVideoUrl } from '@/lib/video';
+import { templateTypes, validateExamConfig } from '@/lib/exam-config';
+import { examInclude } from '@/lib/attempts';
 
 const S = (v) => String(v ?? '').trim();
 const okUrl = (u) => !u || /^(https?:\/\/|\/api\/files\/)/i.test(u);
@@ -121,13 +123,15 @@ const TYPES = ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'SHORT_ANSWER'];
 const TITLES = { MULTIPLE_CHOICE: 'Phần I. Trắc nghiệm nhiều phương án', TRUE_FALSE: 'Phần II. Trắc nghiệm đúng sai', SHORT_ANSWER: 'Phần III. Trả lời ngắn' };
 
 function validateExam(p) {
+  const configError = validateExamConfig(p);
+  if (configError) return configError;
   if (!S(p.title)) return 'Vui lòng nhập tên đề thi.';
   const dur = Number(p.durationMinutes);
   if (!Number.isInteger(dur) || dur < 1 || dur > 300) return 'Thời gian làm bài phải từ 1 đến 300 phút.';
   if (p.status === 'PUBLISHED') {
     const total = TYPES.reduce((n, t) => n + (p.sections?.[t]?.length || 0), 0);
     if (!total) return 'Đề thi cần ít nhất một câu hỏi trước khi công bố.';
-    for (const t of TYPES) {
+    for (const t of templateTypes(p.template)) {
       const qs = p.sections?.[t] || [];
       for (let i = 0; i < qs.length; i++) {
         const q = qs[i], where = `${TITLES[t].split('.')[0]}, câu ${i + 1}`;
@@ -151,27 +155,38 @@ function validateExam(p) {
 /** Lưu toàn bộ đề (thông tin + 3 phần câu hỏi). Giữ nguyên id câu hỏi cũ để không mất lịch sử bài làm. */
 export async function saveExamAction(payload) {
   await requireAdmin();
+  const enabled = templateTypes(payload.template);
+  payload = { ...payload, sections: Object.fromEntries(TYPES.map(t => [t, enabled.includes(t) ? payload.sections?.[t] || [] : []])) };
   const err = validateExam(payload);
   if (err) return { error: err };
   const meta = {
+    template: payload.template,
     title: S(payload.title), description: S(payload.description), grade: S(payload.grade) || '12',
     durationMinutes: Number(payload.durationMinutes), shuffleQuestions: !!payload.shuffleQuestions,
     status: payload.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT',
   };
   const examId = await db.$transaction(async (tx) => {
     let exam;
+    if (payload.id) {
+      // Freeze older attempts before any edits, including question removal.
+      const old = await tx.exam.findUnique({ where: { id: payload.id }, include: examInclude });
+      if (!old) throw new Error('Không tìm thấy đề thi.');
+      await tx.examAttempt.updateMany({ where: { examId: payload.id, snapshot: null }, data: { snapshot: JSON.stringify({ title: old.title, durationMinutes: old.durationMinutes, sections: old.sections }) } });
+    }
     if (payload.id) exam = await tx.exam.update({ where: { id: payload.id }, data: meta });
     else exam = await tx.exam.create({ data: meta });
     for (let si = 0; si < TYPES.length; si++) {
       const type = TYPES[si];
       let section = await tx.examSection.findUnique({ where: { examId_type: { examId: exam.id, type } } });
       if (!section) section = await tx.examSection.create({ data: { examId: exam.id, type, order: si, title: TITLES[type] } });
+      const settings = enabled.includes(type) ? payload.sectionSettings?.[type] : null;
+      if (settings) await tx.examSection.update({ where: { id: section.id }, data: { pointsPerQuestion: settings.pointsPerQuestion == null ? null : Number(settings.pointsPerQuestion), tfScoring: settings.tfScoring } });
       const incoming = payload.sections?.[type] || [];
       const keepIds = incoming.map((q) => q.id).filter(Boolean);
-      await tx.question.deleteMany({ where: { sectionId: section.id, id: { notIn: keepIds } } });
+      await tx.question.updateMany({ where: { sectionId: section.id, id: { notIn: keepIds } }, data: { retired: true } });
       for (let i = 0; i < incoming.length; i++) {
         const q = incoming[i];
-        const base = { content: S(q.content), explanation: S(q.explanation), order: i };
+        const base = { content: S(q.content), explanation: S(q.explanation), order: i, retired: false, points: q.points == null ? null : Number(q.points) };
         let qid = q.id;
         const exists = qid ? await tx.question.findFirst({ where: { id: qid, sectionId: section.id } }) : null;
         if (exists) {
@@ -206,7 +221,7 @@ export async function deleteExamAction(fd) {
 
 export async function toggleExamAction(fd) {
   await requireAdmin();
-  const e = await db.exam.findUnique({ where: { id: S(fd.get('id')) }, include: { sections: { include: { _count: { select: { questions: true } } } } } });
+  const e = await db.exam.findUnique({ where: { id: S(fd.get('id')) }, include: { sections: { include: { _count: { select: { questions: { where: { retired: false } } } } } } } });
   if (!e) return;
   if (e.status !== 'PUBLISHED' && e.sections.reduce((n, s) => n + s._count.questions, 0) === 0) return;
   await db.exam.update({ where: { id: e.id }, data: { status: e.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED' } });
@@ -217,16 +232,16 @@ export async function duplicateExamAction(fd) {
   await requireAdmin();
   const src = await db.exam.findUnique({
     where: { id: S(fd.get('id')) },
-    include: { sections: { include: { questions: { include: { options: true, statements: true, shortAnswers: true } } } } },
+    include: examInclude,
   });
   if (!src) return;
-  const copy = await db.exam.create({ data: { title: `${src.title} (Bản sao)`, description: src.description, grade: src.grade, durationMinutes: src.durationMinutes, shuffleQuestions: src.shuffleQuestions, status: 'DRAFT' } });
+  const copy = await db.exam.create({ data: { title: `${src.title} (Bản sao)`, template: src.template, description: src.description, grade: src.grade, durationMinutes: src.durationMinutes, shuffleQuestions: src.shuffleQuestions, status: 'DRAFT' } });
   for (const s of src.sections) {
-    const sec = await db.examSection.create({ data: { examId: copy.id, type: s.type, order: s.order, title: s.title } });
+    const sec = await db.examSection.create({ data: { examId: copy.id, type: s.type, order: s.order, title: s.title, pointsPerQuestion: s.pointsPerQuestion, tfScoring: s.tfScoring } });
     for (const q of s.questions) {
       await db.question.create({
         data: {
-          sectionId: sec.id, order: q.order, content: q.content, explanation: q.explanation,
+          sectionId: sec.id, order: q.order, content: q.content, explanation: q.explanation, points: q.points,
           options: { create: q.options.map((o) => ({ label: o.label, content: o.content, isCorrect: o.isCorrect })) },
           statements: { create: q.statements.map((o) => ({ label: o.label, content: o.content, isTrue: o.isTrue })) },
           shortAnswers: { create: q.shortAnswers.map((o) => ({ answer: o.answer, isPrimary: o.isPrimary })) },

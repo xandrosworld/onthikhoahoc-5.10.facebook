@@ -16,12 +16,12 @@ export default async function AdminExams({ searchParams }) {
   const { page, skip, take, pageSize } = paginate(searchParams, 10);
   const [total, exams] = await Promise.all([
     db.exam.count({ where }),
-    db.exam.findMany({ where, orderBy: { updatedAt: 'desc' }, skip, take, include: { sections: { include: { _count: { select: { questions: true } } } }, _count: { select: { attempts: true } } } }),
+    db.exam.findMany({ where, orderBy: { updatedAt: 'desc' }, skip, take, include: { sections: { include: { _count: { select: { questions: { where: { retired: false } } } } } }, _count: { select: { attempts: true } } } }),
   ]);
   return (
     <>
       {searchParams?.saved && <ToastOnMount message="Đã lưu đề thi." />}
-      <PageTitle title="Đề thi" desc="Soạn đề trực tiếp trên website theo cấu trúc 3 phần cố định.">
+      <PageTitle title="Đề thi" desc="Chọn mẫu đề, soạn câu hỏi và thiết lập điểm từng phần.">
         <Link href="/admin/de-thi/moi" className="btn btn-primary"><Icon name="plus" size={18} />Tạo đề thi</Link>
       </PageTitle>
       <div className="card">
