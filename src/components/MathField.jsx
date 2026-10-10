@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Rich } from './Rich';
 import Icon from './Icon';
+import { insertMath, mathRangeAt } from '@/lib/math-editor';
 
 const SNIPPETS = [
   ['x²', 'x^{‸}', 'Số mũ'],
@@ -68,8 +69,8 @@ export default function MathField({ id, label, value, onChange, multiline = true
       // If typing continued during upload, append instead of replacing that text.
       let from = latest === original ? start : latest.length;
       let to = latest === original ? end : latest.length;
-      const enclosingMath = [...latest.matchAll(/\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g)].find(match => from > match.index && from < match.index + match[0].length);
-      if (enclosingMath) from = to = enclosingMath.index + enclosingMath[0].length;
+      const enclosingMath = mathRangeAt(latest, from);
+      if (enclosingMath) from = to = enclosingMath.end;
       const before = latest.slice(0, from);
       const separator = multiline ? '\n' : ' ';
       const snippet = `${before && !/\s$/.test(before) ? separator : ''}![Hình minh họa](${result.url})${separator}`;
@@ -93,21 +94,9 @@ export default function MathField({ id, label, value, onChange, multiline = true
     if (!el) return;
     const start = el.selectionStart ?? value.length;
     const end = el.selectionEnd ?? value.length;
-    const before = value.slice(0, start);
-    const sel = value.slice(start, end);
-    const insideMath = ((before.replace(/\$\$/g, '').match(/\$/g) || []).length % 2) === 1;
-    let text = snippet;
-    const caret = text.indexOf('‸');
-    if (caret >= 0 && sel) text = text.replace('‸', sel);
-    let cursorOffset = text.indexOf('‸');
-    text = text.replace('‸', '');
-    if (wrap || !insideMath) {
-      if (wrap === 'block') { text = `$$${text}$$`; cursorOffset = cursorOffset >= 0 ? cursorOffset + 2 : -1; }
-      else { text = `$${text}$`; cursorOffset = cursorOffset >= 0 ? cursorOffset + 1 : -1; }
-    }
-    const next = before + text + value.slice(end);
-    onChange(next);
-    const pos = cursorOffset >= 0 ? start + cursorOffset : start + text.length;
+    const result = insertMath(value, start, end, snippet, wrap);
+    onChange(result.value);
+    const pos = result.cursor;
     requestAnimationFrame(() => { el.focus(); el.setSelectionRange(pos, pos); });
   }
 
@@ -117,8 +106,8 @@ export default function MathField({ id, label, value, onChange, multiline = true
       {label && <label htmlFor={id} className={hideLabel ? 'sr-only' : 'label'} style={{ display: 'block', marginBottom: 6 }}>{label}</label>}
       {toolbar && (showTools || focused) && (
         <div className="math-bar" role="toolbar" aria-label="Chèn công thức">
-          <button type="button" onClick={() => insert('‸', 'inline')} title="Công thức trong dòng: $...$"><b>$ $</b></button>
-          <button type="button" onClick={() => insert('‸', 'block')} title="Công thức riêng dòng: $$...$$"><b>$$</b></button>
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => insert('‸', 'inline')} title="Công thức trong dòng: $...$"><b>$ $</b></button>
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => insert('‸', 'block')} title="Công thức riêng dòng: $$...$$"><b>$$</b></button>
           {SNIPPETS.map(([l, s, t]) => <button key={t} type="button" title={t} aria-label={t} onMouseDown={(e) => e.preventDefault()} onClick={() => insert(s)}>{l}</button>)}
         </div>
       )}
