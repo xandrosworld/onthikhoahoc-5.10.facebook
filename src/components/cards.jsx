@@ -35,6 +35,7 @@ export function ExamCard({ e, counts }) {
       <div className="parts">
         {!!counts.mc && <Badge>{counts.mc} câu trắc nghiệm</Badge>}
         {!!counts.tf && <Badge>{counts.tf} câu đúng/sai</Badge>}
+        {!!counts.essay && <Badge>{counts.essay} câu tự luận</Badge>}
         {!!counts.sa && <Badge>{counts.sa} câu trả lời ngắn</Badge>}
       </div>
       <Link href={`/hoc-sinh/luyen-thi/${e.id}`} className="btn btn-primary btn-block">Luyện thi ngay</Link>
@@ -61,11 +62,12 @@ export function PostCard({ p }) {
 }
 
 export function countByType(exam) {
-  const c = { mc: 0, tf: 0, sa: 0 };
+  const c = { mc: 0, tf: 0, sa: 0, essay: 0 };
   for (const s of exam.sections || []) {
     const n = s._count?.questions ?? s.questions?.length ?? 0;
     if (s.type === 'MULTIPLE_CHOICE') c.mc = n;
     if (s.type === 'TRUE_FALSE') c.tf = n;
+    if (s.type === 'ESSAY') c.essay = n;
     if (s.type === 'SHORT_ANSWER') c.sa = n;
   }
   return c;

@@ -4,6 +4,7 @@ export const SECTION_TYPES = ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'SHORT_ANSWER'];
 export const SECTION_META = {
   MULTIPLE_CHOICE: { roman: 'I', title: 'Phần I', name: 'Trắc nghiệm nhiều phương án', hint: 'Chọn một đáp án đúng nhất.' },
   TRUE_FALSE: { roman: 'II', title: 'Phần II', name: 'Trắc nghiệm đúng / sai', hint: 'Chọn Đúng hoặc Sai cho từng mệnh đề.' },
+  ESSAY: { roman: 'IV', title: 'Phần IV', name: 'Tự luận', hint: 'Trình bày lời giải. Giáo viên chấm sau khi nộp bài.' },
   SHORT_ANSWER: { roman: 'III', title: 'Phần III', name: 'Trả lời ngắn', hint: 'Nhập đáp án (số hoặc biểu thức ngắn).' },
 };
 
@@ -35,8 +36,19 @@ export function slugify(str) {
 
 const dtf = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Ho_Chi_Minh' });
 const dtft = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' });
-export const fmtDate = (d) => (d ? dtf.format(new Date(d)) : '—');
-export const fmtDateTime = (d) => (d ? dtft.format(new Date(d)) : '—');
+function dateValue(value) {
+  if (!value) return null;
+  let v = value;
+  // WordPress stores UTC timestamps without an offset; serialized React dates use $D.
+  if (typeof v === 'string') {
+    v = v.replace(/^\$D/, '');
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(v)) v = v.replace(' ', 'T') + 'Z';
+  }
+  const date = new Date(v);
+  return Number.isFinite(date.getTime()) ? date : null;
+}
+export const fmtDate = (d) => { const v = dateValue(d); return v ? dtf.format(v) : '—'; };
+export const fmtDateTime = (d) => { const v = dateValue(d); return v ? dtft.format(v) : '—'; };
 
 export function fmtDuration(sec) {
   sec = Math.max(0, Math.round(sec || 0));

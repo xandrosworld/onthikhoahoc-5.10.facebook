@@ -1,9 +1,9 @@
 <?php
 // Pure domain functions: shared by REST handlers and CLI regression tests.
-function sc_types($template) { return array_slice(['MULTIPLE_CHOICE','TRUE_FALSE','SHORT_ANSWER'], 0, ['MC'=>1,'MC_TF'=>2,'FULL'=>3][$template] ?? 3); }
+function sc_types($template) { return array_slice(['MULTIPLE_CHOICE','TRUE_FALSE','SHORT_ANSWER','ESSAY'], 0, ['MC'=>1,'MC_TF'=>2,'FULL'=>3,'FULL_ESSAY'=>4][$template] ?? 3); }
 function sc_points($value) { return is_numeric($value) && is_finite((float)$value) && (float)$value > 0 && (float)$value <= 100; }
 function sc_validate_exam($e) {
-    if (!in_array($e['template'] ?? '', ['MC','MC_TF','FULL'], true)) return 'Chọn mẫu đề hợp lệ.';
+    if (!in_array($e['template'] ?? '', ['MC','MC_TF','FULL','FULL_ESSAY'], true)) return 'Chọn mẫu đề hợp lệ.';
     if (trim($e['title'] ?? '') === '' || strlen($e['title']) > 500) return 'Nhập tên đề (tối đa 500 ký tự).';
     if (!in_array((string)($e['grade'] ?? ''), ['10','11','12'], true)) return 'Khối lớp không hợp lệ.';
     if (!is_numeric($e['durationMinutes'] ?? null) || $e['durationMinutes'] < 1 || $e['durationMinutes'] > 300 || floor($e['durationMinutes']) != $e['durationMinutes']) return 'Thời gian từ 1 đến 300 phút.';
@@ -27,7 +27,7 @@ function sc_validate_exam($e) {
             } elseif ($type === 'TRUE_FALSE') {
                 if (count($q['statements'] ?? []) !== 4) return 'Mỗi câu đúng/sai cần 4 mệnh đề.';
                 foreach ($q['statements'] as $st) if (trim($st['content'] ?? '') === '' || !is_bool($st['isTrue'] ?? null)) return 'Mệnh đề đúng/sai không hợp lệ.';
-            } elseif (!array_filter($q['answers'] ?? [], fn($a)=>is_string($a) && trim($a) !== '')) return 'Nhập đáp án trả lời ngắn.';
+            } elseif ($type==='SHORT_ANSWER' && !array_filter($q['answers'] ?? [], fn($a)=>is_string($a) && trim($a) !== '')) return 'Nhập đáp án trả lời ngắn.';
         }
     }
     return ($e['status'] ?? '') === 'PUBLISHED' && !$count ? 'Thêm câu hỏi trước khi công bố.' : null;
@@ -62,10 +62,10 @@ function sc_short_matches($input, $accepted) {
     foreach ($accepted as $v) { $b=sc_normalize_short($v); if ($a===$b) return true; if (preg_match('/^-?\d+(\.\d+)?$/D',$a) && preg_match('/^-?\d+(\.\d+)?$/D',$b) && abs((float)$a-(float)$b)<1e-9) return true; }
     return false;
 }
-function sc_grade($sections, $answers, $duration=0) {
-    $r=['score'=>0,'rawScore'=>0,'maxScore'=>0,'correct'=>0,'wrong'=>0,'unanswered'=>0,'totalUnits'=>0,'durationSec'=>$duration,'breakdown'=>[],'perQuestion'=>[]];
+function sc_grade($sections, $answers, $duration=0, $manual=[]) {
+    $r=['pending'=>0,'manualGrades'=>$manual,'score'=>0,'rawScore'=>0,'maxScore'=>0,'correct'=>0,'wrong'=>0,'unanswered'=>0,'totalUnits'=>0,'durationSec'=>$duration,'breakdown'=>[],'perQuestion'=>[]];
     foreach ($sections as $s) {
-        $b=['type'=>$s['type'],'questions'=>count($s['questions']),'units'=>0,'correct'=>0,'wrong'=>0,'unanswered'=>0,'fraction'=>0,'points'=>0,'maxPoints'=>0];
+        $b=['pending'=>0,'type'=>$s['type'],'questions'=>count($s['questions']),'units'=>0,'correct'=>0,'wrong'=>0,'unanswered'=>0,'fraction'=>0,'points'=>0,'maxPoints'=>0];
         foreach ($s['questions'] as $q) {
             $max=(float)($q['points'] ?? $s['pointsPerQuestion']); $fraction=0; $v=$answers[$q['id'].'|'] ?? ''; $p=['status'=>'blank'];
             if ($s['type']==='TRUE_FALSE') {
@@ -78,6 +78,13 @@ function sc_grade($sections, $answers, $duration=0) {
                 }
                 $fraction=$n===4 && $s['tfScoring']!=='EQUAL'?[0,.1,.25,.5,1][$k]:($n?$k/$n:0);
                 $p['status']=!$any?'blank':($k===$n?'correct':($k===0?'wrong':'partial')); $p['k']=$k; $p['n']=$n;
+            } elseif ($s['type']==='ESSAY') {
+                $b['units']++;
+                if (array_key_exists($q['id'],$manual)) {
+                    $mark=$manual[$q['id']]; $fraction=(float)$mark['points']/$max;
+                    $p['status']='graded'; $p['feedback']=$mark['feedback'] ?? '';
+                    if(trim((string)$v)==='') $b['unanswered']++;
+                } else { $p['status']='pending'; $b['pending']++; }
             } else {
                 $b['units']++; $correct=false;
                 if ($s['type']==='MULTIPLE_CHOICE') { foreach ($q['options'] as $o) if ($o['isCorrect'] && $v===$o['label']) $correct=true; }
@@ -88,7 +95,7 @@ function sc_grade($sections, $answers, $duration=0) {
             $p['maxPoints']=$max; $p['points']=$max*$fraction; $r['perQuestion'][$q['id']]=$p; $b['points']+=$p['points']; $b['maxPoints']+=$max;
         }
         $b['fraction']=$b['maxPoints']?$b['points']/$b['maxPoints']:0;
-        foreach (['correct','wrong','unanswered'] as $key) $r[$key]+=$b[$key];
+        foreach (['correct','wrong','unanswered','pending'] as $key) $r[$key]+=$b[$key];
         $r['totalUnits']+=$b['units']; $r['rawScore']+=$b['points']; $r['maxScore']+=$b['maxPoints']; $r['breakdown'][]=$b;
     }
     $r['score']=$r['maxScore']?round($r['rawScore']/$r['maxScore']*10,2):0;
@@ -101,6 +108,20 @@ function sc_clean_answers($sections, $input) {
         if ($s['type']==='TRUE_FALSE') foreach ($q['statements'] as $st) $allowed[$q['id'].'|'.$st['label']]=['','T','F'];
         else $allowed[$q['id'].'|']=$s['type']==='MULTIPLE_CHOICE'?['','A','B','C','D']:null;
     }
-    foreach ($input as $key=>$v) if (!array_key_exists($key,$allowed) || !is_string($v) || strlen($v)>500 || ($allowed[$key]!==null && !in_array($v,$allowed[$key],true))) throw new InvalidArgumentException('Đáp án không thuộc đề hoặc sai định dạng.');
+    foreach ($input as $key=>$v) if (!array_key_exists($key,$allowed) || !is_string($v) || strlen($v)>(str_starts_with($key,'ESSAY-')?48000:500) || ($allowed[$key]!==null && !in_array($v,$allowed[$key],true))) throw new InvalidArgumentException('Đáp án không thuộc đề hoặc sai định dạng.');
     return $input;
+}
+
+function sc_clean_marks($sections,$input,$userId) {
+    if(!is_array($input) || !$input) throw new InvalidArgumentException('Nhập điểm tự luận.');
+    $allowed=[];
+    foreach($sections as $s) if($s['type']==='ESSAY') foreach($s['questions'] as $q) $allowed[$q['id']]=(float)($q['points'] ?? $s['pointsPerQuestion']);
+    $out=[];
+    foreach($input as $id=>$mark) {
+        $v=$mark['points'] ?? null;
+        if(!isset($allowed[$id]) || !is_numeric($v) || !is_finite((float)$v) || (float)$v<0 || (float)$v>$allowed[$id]) throw new InvalidArgumentException('Điểm tự luận phải từ 0 đến điểm tối đa của câu.');
+        if(!is_string($mark['feedback'] ?? '') || strlen($mark['feedback'] ?? '')>12000) throw new InvalidArgumentException('Nhận xét quá dài.');
+        $out[$id]=['points'=>(float)$v,'feedback'=>$mark['feedback'] ?? '', 'gradedBy'=>$userId,'gradedAt'=>gmdate('c')];
+    }
+    return $out;
 }

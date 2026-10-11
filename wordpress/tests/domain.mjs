@@ -81,6 +81,10 @@ for (const rule of ["TIERED", "EQUAL"])
         `echo json_encode(sc_grade(json_decode(base64_decode('${b64(sections)}'),true),json_decode(base64_decode('${b64(answers)}'),true),60));`,
       );
       const expected = gradeAttempt(sections, answers, 60);
+      assert.equal(actual.pending, 0);
+      assert.deepEqual(actual.manualGrades, []);
+      delete actual.pending; delete actual.manualGrades;
+      actual.breakdown.forEach(b => {assert.equal(b.pending, 0); delete b.pending;});
       assert.deepEqual(actual, expected, JSON.stringify({ rule, k, short }));
       cases++;
     }

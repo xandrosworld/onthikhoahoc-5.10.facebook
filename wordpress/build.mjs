@@ -7,6 +7,7 @@ const root = path.resolve("..");
 const out = path.resolve("sonclass/assets");
 await fs.mkdir(out, { recursive: true });
 await build({
+  absWorkingDir: path.dirname(fileURLToPath(import.meta.url)),
   entryPoints: ["frontend/app.jsx"],
   bundle: true,
   outfile: path.join(out, "app.js"),

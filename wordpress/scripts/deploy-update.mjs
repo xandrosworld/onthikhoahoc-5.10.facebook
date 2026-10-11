@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import { request } from "./production-client.mjs";
-const file = new URL("../dist/sonclass-1.0.2.zip", import.meta.url);
+const file = new URL("../dist/sonclass-1.1.2.zip", import.meta.url);
 const page = await request("/wp-admin/plugin-install.php?tab=upload");
 const html = await page.text();
 const nonce = html.match(/name="_wpnonce"[^>]*value="([^"]+)"/)?.[1];
@@ -10,7 +10,7 @@ data.set("_wpnonce", nonce);
 data.set(
   "pluginzip",
   new Blob([await fs.readFile(file)], { type: "application/zip" }),
-  "sonclass-1.0.2.zip",
+  "sonclass-1.1.2.zip",
 );
 data.set("install-plugin-submit", "Install Now");
 const upload = await request("/wp-admin/update.php?action=upload-plugin", {
@@ -46,4 +46,4 @@ const done = await request(url.pathname + url.search);
 const doneText = await done.text();
 if (!doneText.includes("Plugin đã được cập nhật thành công."))
   throw new Error("Update did not confirm success");
-console.log("SonClass 1.0.2 updated successfully.");
+console.log("SonClass 1.1.2 updated successfully.");

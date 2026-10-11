@@ -11,8 +11,8 @@ export const metadata = { description: 'Học Toán lớp 10, 11, 12 tại lớp
 
 const BENEFITS = [
   ['target', 'Lộ trình rõ ràng', 'Học theo từng chuyên đề, với mục tiêu cụ thể và bài kiểm tra định kỳ.'],
-  ['clipboard', 'Luyện đúng cấu trúc', 'Làm quen đủ ba phần: trắc nghiệm, đúng/sai và trả lời ngắn.'],
-  ['zap', 'Biết ngay mình cần ôn gì', 'Có điểm sau khi nộp bài, kèm đáp án và lời giải từng câu.'],
+  ['clipboard', 'Luyện đúng cấu trúc', 'Luyện trắc nghiệm, đúng/sai, trả lời ngắn và tự luận theo đề giáo viên.'],
+  ['zap', 'Biết ngay mình cần ôn gì', 'Phần trắc nghiệm được chấm ngay; phần tự luận do giáo viên chấm và nhận xét.'],
   ['users', 'Được hướng dẫn sát sao', 'Lớp học nhỏ để giáo viên có thời gian theo sát từng học sinh.'],
   ['book', 'Tài liệu chọn lọc', 'Chuyên đề, bài tập và video để tiếp tục luyện tập sau giờ học.'],
   ['shield', 'Nhìn thấy sự tiến bộ', 'Xem lại lịch sử bài làm, điểm số và những phần còn cần cải thiện.'],

@@ -271,6 +271,14 @@ export default function ExamRunner({ attemptId, title, studentName, sections, in
             </div>
           )}
 
+          {q.type === 'ESSAY' && (
+            <div className="field">
+              <label htmlFor={`essay-${q.id}`}>Bài làm tự luận</label>
+              <textarea id={`essay-${q.id}`} className="textarea" rows={10} maxLength={12000} value={answers[`${q.id}|`] || ''} disabled={submitting} onChange={e => setAnswer(`${q.id}|`, e.target.value)} placeholder="Trình bày từng bước giải; có thể gõ LaTeX trong dấu $...$." />
+              <p className="field-hint">Tối đa 12.000 ký tự. Bài làm được tự động lưu; giáo viên chấm sau khi nộp.</p>
+              {answers[`${q.id}|`] && <div className="card card-pad"><Rich text={answers[`${q.id}|`]} /></div>}
+            </div>
+          )}
           {q.type === 'SHORT_ANSWER' && (
             <div>
               <label htmlFor="short" className="label" style={{ display: 'block', marginBottom: 8 }}>Đáp án của bạn</label>

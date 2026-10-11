@@ -10,11 +10,12 @@ import { saveExamAction } from '@/app/actions/admin';
 import { SECTION_META } from '@/lib/utils';
 import { EXAM_TEMPLATES, DEFAULT_POINTS, templateTypes, questionPoints, examPointSummary, formatPoints, validPoints, validateExamConfig } from '@/lib/exam-config';
 
-const TYPES = ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'SHORT_ANSWER'];
+const TYPES = ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'SHORT_ANSWER', 'ESSAY'];
 const uid = () => Math.random().toString(36).slice(2, 10);
 const strip = (s) => String(s || '').replace(/\$+/g, '').replace(/\\[a-zA-Z]+/g, ' ').replace(/[{}]/g, '').replace(/\s+/g, ' ').trim();
 
 const blank = {
+  ESSAY: () => ({ k: uid(), content: '', explanation: '' }),
   MULTIPLE_CHOICE: () => ({ k: uid(), content: '', explanation: '', options: [0, 1, 2, 3].map(() => ({ content: '', isCorrect: false })) }),
   TRUE_FALSE: () => ({ k: uid(), content: '', explanation: '', statements: [0, 1, 2, 3].map(() => ({ content: '', isTrue: false })) }),
   SHORT_ANSWER: () => ({ k: uid(), content: '', explanation: '', answers: [''] }),
@@ -52,12 +53,13 @@ function QuestionPreview({ type, q, no, points }) {
         <div key={i} className="tf-row"><span className="lbl">{'abcd'[i]})</span><Rich className="txt" text={s.content || '…'} /><span className={`badge ${s.isTrue ? 'badge-success' : 'badge-danger'}`}>Đáp án: {s.isTrue ? 'Đúng' : 'Sai'}</span></div>
       ))}
       {type === 'SHORT_ANSWER' && <div><div className="input short-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--n-400)' }}>Ô nhập đáp án của học sinh…</div><p className="small mt-2">Đáp án đúng: <b>{q.answers.filter((a) => a.trim()).join('  |  ') || '—'}</b></p></div>}
+      {type === 'ESSAY' && <p className="small muted">Học sinh trình bày lời giải; giáo viên chấm theo điểm của câu.</p>}
       {q.explanation && <div className="explain"><b>Lời giải: </b><Rich as="span" text={q.explanation} /></div>}
     </div>
   );
 }
 
-export default function ExamBuilder({ initial, attemptCount }) {
+export default function ExamBuilder({ initial, attemptCount, allowEssay = false }) {
   const router = useRouter();
   const { push } = useToast();
   const [exam, setExam] = useState(() => withKeys(initial));
@@ -116,7 +118,7 @@ export default function ExamBuilder({ initial, attemptCount }) {
   const pointsOf = (type, q) => questionPoints(scoringSections, scoringSections.find(s => s.type === type), q);
   const counts = useMemo(() => Object.fromEntries(TYPES.map((t) => [t, templateTypes(exam.template).includes(t) ? exam.sections[t].length : 0])), [exam]);
   const issues = activeTypes.reduce((n, t) => n + exam.sections[t].filter((q) => issueOf(t, q)).length, 0);
-  const total = counts.MULTIPLE_CHOICE + counts.TRUE_FALSE + counts.SHORT_ANSWER;
+  const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
 
   function chooseTemplate(template) {
     const hidden = activeTypes.filter(t => !templateTypes(template).includes(t));
@@ -194,9 +196,9 @@ export default function ExamBuilder({ initial, attemptCount }) {
 
       <fieldset className="card card-pad exam-templates" disabled={saving || hasImageUploads}>
         <legend>Chọn mẫu đề thi</legend>
-        <div className="template-options">{EXAM_TEMPLATES.map(template => <label key={template.id} className={`template-option ${exam.template === template.id ? 'selected' : ''}`}>
+        <div className="template-options">{EXAM_TEMPLATES.filter(t => allowEssay || t.id !== 'FULL_ESSAY').map(template => <label key={template.id} className={`template-option ${exam.template === template.id ? 'selected' : ''}`}>
           <input type="radio" name="exam-template" value={template.id} checked={exam.template === template.id} onChange={() => chooseTemplate(template.id)} />
-          <span className="template-copy"><span className="template-diagram" aria-hidden="true"><i>A</i><i>B</i><i>C</i><i>D</i>{template.id !== 'MC' && <i>Đ/S</i>}{template.id === 'FULL' && <i>123</i>}</span><b>{template.name}</b><small>{template.description}</small></span>
+          <span className="template-copy"><span className="template-diagram" aria-hidden="true"><i>A</i><i>B</i><i>C</i><i>D</i>{template.id !== 'MC' && <i>Đ/S</i>}{template.types.includes('SHORT_ANSWER') && <i>123</i>}{template.types.includes('ESSAY') && <i>TL</i>}</span><b>{template.name}</b><small>{template.description}</small></span>
         </label>)}</div>
       </fieldset>
 

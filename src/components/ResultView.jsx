@@ -6,6 +6,8 @@ import { SECTION_META, fmtDateTime, fmtDuration, fmtScore, scoreTone } from '@/l
 import { formatPoints } from '@/lib/exam-config';
 
 const STATUS_BADGE = {
+  pending: <Badge tone="warning" dot>Chờ giáo viên chấm</Badge>,
+  graded: <Badge tone="info" dot>Đã chấm tự luận</Badge>,
   correct: <Badge tone="success" dot>Đúng</Badge>,
   wrong: <Badge tone="danger" dot>Sai</Badge>,
   partial: <Badge tone="warning" dot>Đúng một phần</Badge>,
@@ -20,6 +22,7 @@ export default function ResultView({ data, admin = false }) {
   const ring = { success: 'var(--success-600)', warning: 'var(--accent-500)', danger: 'var(--danger-600)' }[tone];
   return (
     <>
+      {r.pending > 0 && <div className="alert alert-warning">Còn {r.pending} câu tự luận chờ giáo viên chấm. Điểm hiển thị là điểm tạm thời.</div>}
       <div className="card card-pad mb-6">
         <div className="result-hero">
           <div className="score-ring" style={{ '--p': r.score * 10, '--ring': ring }} role="img" aria-label={`Điểm ${formatPoints(r.rawScore ?? r.score)} trên ${formatPoints(r.maxScore)}`}>
@@ -31,7 +34,7 @@ export default function ResultView({ data, admin = false }) {
               <span className="small muted">{fmtDateTime(attempt.submittedAt)}</span>
             </div>
             <h2 style={{ marginBottom: 4 }}>{attempt.exam.title}</h2>
-            <p className="small muted">Quy đổi thang 10: <b>{fmtScore(r.score)} / 10</b></p>
+            <p className="small muted">{r.pending > 0 ? 'Điểm tạm thời quy đổi thang 10:' : 'Quy đổi thang 10:'} <b>{fmtScore(r.score)} / 10</b></p>
             <p className="muted">Học sinh: <b style={{ color: 'var(--n-900)' }}>{attempt.user.fullName}</b></p>
             <div className="result-stats">
               <div><b>{r.totalUnits}</b><span>Tổng số câu / ý</span></div>
@@ -50,15 +53,15 @@ export default function ResultView({ data, admin = false }) {
         <div className="card-pad stack" style={{ gap: 22 }}>
           {breakdown.filter((b) => b.questions > 0).map((b) => {
             const m = SECTION_META[b.type];
-            const pct = b.units ? (b.correct / b.units) * 100 : 0;
+            const pct = b.type === 'ESSAY' ? (b.maxPoints ? b.points / b.maxPoints * 100 : 0) : b.units ? (b.correct / b.units) * 100 : 0;
             return (
               <div key={b.type}>
                 <div className="row between mb-2 wrap">
                   <div><b>{m.title}</b> <span className="muted">– {m.name}</span></div>
-                  <div><b>{b.correct}/{b.units}</b> <span className="muted small">{b.type === 'TRUE_FALSE' ? 'ý đúng' : 'câu đúng'}</span> · <b style={{ color: 'var(--primary-700)' }}>{fmtScore(b.points)}/{fmtScore(b.maxPoints)} điểm</b></div>
+                  <div>{b.type === 'ESSAY' ? <span>{b.pending || 0} câu chờ chấm</span> : <><b>{b.correct}/{b.units}</b> <span className="muted small">{b.type === 'TRUE_FALSE' ? 'ý đúng' : 'câu đúng'}</span></>} · <b style={{ color: 'var(--primary-700)' }}>{fmtScore(b.points)}/{fmtScore(b.maxPoints)} điểm</b></div>
                 </div>
                 <div className={`bar ${pct >= 80 ? 'success' : pct >= 50 ? 'warning' : 'danger'}`}><i style={{ width: `${pct}%` }} /></div>
-                <div className="xs muted mt-2">{b.correct} đúng · {b.wrong} sai · {b.unanswered} chưa trả lời</div>
+                <div className="xs muted mt-2">{b.type === 'ESSAY' ? `${b.questions - (b.pending || 0)}/${b.questions} câu đã chấm` : `${b.correct} đúng · ${b.wrong} sai · ${b.unanswered} chưa trả lời`}</div>
               </div>
             );
           })}
@@ -104,6 +107,7 @@ export default function ResultView({ data, admin = false }) {
                         </div>
                       );
                     })}
+                    {s.type === 'ESSAY' && <div className="card card-pad"><b>Bài làm:</b><Rich text={mine() || '*(chưa trả lời)*'} />{pq.feedback && <div className="explain"><b>Nhận xét của giáo viên:</b><Rich text={pq.feedback} /></div>}</div>}
                     {s.type === 'SHORT_ANSWER' && (
                       <div className={`review-opt ${pq.status === 'correct' ? 'correct' : pq.status === 'wrong' ? 'wrong' : ''}`} style={{ display: 'block' }}>
                         <div>Bạn trả lời: <b>{mine() || '—'}</b></div>

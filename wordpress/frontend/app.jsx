@@ -10,6 +10,7 @@ import {
   asset,
   href,
 } from "./runtime";
+import Footer from "./Footer";
 import Home from "../../src/app/(public)/page";
 import SiteHeader from "../../src/components/SiteHeader";
 import ExamBuilder from "../../src/app/admin/de-thi/ExamBuilder";
@@ -22,7 +23,7 @@ import {
   PostCard,
   countByType,
 } from "../../src/components/cards";
-import { Prose } from "../../src/components/Rich";
+import { Prose, Rich } from "../../src/components/Rich";
 import MathField from "../../src/components/MathField";
 import VideoPlayer from "../../src/components/VideoPlayer";
 import UploadField from "../../src/components/UploadField";
@@ -54,7 +55,7 @@ const urls = {
   attempts: "ket-qua",
   settings: "thiet-lap",
 };
-const types = ["MULTIPLE_CHOICE", "TRUE_FALSE", "SHORT_ANSWER"];
+const types = ["MULTIPLE_CHOICE", "TRUE_FALSE", "SHORT_ANSWER", "ESSAY"];
 const blankExam = () => ({
   title: "",
   description: "",
@@ -558,7 +559,29 @@ function Attempt({ id, result = false, admin = false }) {
     ) : (
       <ExamRunner {...data} />
     );
-  return <ResultView data={data} admin={admin} />;
+  return <><ResultView data={data} admin={admin} />{admin && <EssayGrading data={data} />}</>;
+}
+function EssayGrading({data}) {
+  const questions = data.sections.filter(s => s.type === 'ESSAY').flatMap(s => s.questions);
+  const [marks, setMarks] = useState(() => Object.fromEntries(questions.map(q => [q.id, {points: data.graded.manualGrades?.[q.id]?.points ?? '', feedback: data.graded.manualGrades?.[q.id]?.feedback || ''}])));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  if (!questions.length) return null;
+  return <form className="card card-pad mt-6" onSubmit={async e => {
+    e.preventDefault(); setSaving(true); setError('');
+    const submitted = Object.fromEntries(Object.entries(marks).filter(([,m]) => m.points !== ''));
+    try { await api('admin/attempts/'+data.attempt.id+'/grade', {marks: submitted, revision: data.graded.gradingRevision || 0}); go(pathNow()); }
+    catch(e) { setError(e.message); } finally {setSaving(false);}
+  }}>
+    <h2>Chấm phần tự luận</h2><p>Để trống điểm câu chưa chấm. Điểm đã lưu sẽ cập nhật vào kết quả của học sinh.</p>
+    <ErrorBox error={error} />
+    {questions.map((q,i) => <div className="card card-pad mb-4" key={q.id}>
+      <h3>Câu tự luận {i+1}</h3><Rich text={q.content} /><h4>Bài làm học sinh</h4><Rich text={data.answers[q.id+'|'] || '*(chưa trả lời)*'} />
+      <div className="field"><label htmlFor={'mark-'+q.id}>Điểm (0 – {data.perQuestion[q.id].maxPoints})</label><input id={'mark-'+q.id} className="input" type="number" min="0" max={data.perQuestion[q.id].maxPoints} step="any" value={marks[q.id].points} onChange={e=>setMarks({...marks,[q.id]:{...marks[q.id],points:e.target.value}})} /></div>
+      <div className="field"><label htmlFor={'feedback-'+q.id}>Nhận xét</label><textarea id={'feedback-'+q.id} className="textarea" maxLength={3000} value={marks[q.id].feedback} onChange={e=>setMarks({...marks,[q.id]:{...marks[q.id],feedback:e.target.value}})} /></div>
+    </div>)}
+    <button className="btn btn-primary" disabled={saving}>{saving ? 'Đang lưu…' : 'Lưu điểm tự luận'}</button>
+  </form>;
 }
 function AttemptList({ admin = false }) {
   const { data, error } = useData(admin ? "admin/attempts" : "attempts");
@@ -586,7 +609,7 @@ function AttemptList({ admin = false }) {
                   <td>{fmtDateTime(a.startedAt)}</td>
                   <td>
                     {a.result
-                      ? `${fmtScore(a.result.rawScore)} / ${fmtScore(a.result.maxScore)} (${fmtScore(a.result.score)}/10)`
+                      ? `${a.result.pending ? "Chờ chấm · " : ""}${fmtScore(a.result.rawScore)} / ${fmtScore(a.result.maxScore)} (${fmtScore(a.result.score)}/10)`
                       : "Đang làm"}
                   </td>
                   <td>
@@ -1164,7 +1187,7 @@ function ExamEditor({ id }) {
       ? blankExam()
       : { ...data, status: data.status === "ARCHIVED" ? "DRAFT" : data.status };
   return (
-    <ExamBuilder initial={initial} attemptCount={data.attemptCount || 0} />
+    <ExamBuilder allowEssay initial={initial} attemptCount={data.attemptCount || 0} />
   );
 }
 function Settings() {
@@ -1422,6 +1445,7 @@ function App() {
     privatePage = /^\/(admin|hoc-sinh|lam-bai)(\/|$)/.test(route) && boot.user;
   return (
     <ToastProvider>
+      <div className={!privatePage ? "public-site" : undefined}>
       {boot.preview && (
         <div className="sc-preview-notice">
           Bản kiểm thử riêng cho quản trị viên — chưa thay website đang chạy
@@ -1445,23 +1469,9 @@ function App() {
         )}
       </Boundary>
       {!privatePage && (
-        <footer className="sc-footer">
-          <div className="container">
-            <div>
-              <b>{boot.settings.siteName}</b>
-              <p>{boot.settings.tagline}</p>
-            </div>
-            <div>
-              <p>{boot.settings.address}</p>
-              <p>
-                {boot.settings.hotline} {boot.settings.email}
-              </p>
-              <p>{boot.settings.openHours}</p>
-            </div>
-            <Link href="/dang-ky-khoa-hoc">Đăng ký học</Link>
-          </div>
-        </footer>
+        <Footer s={boot.settings} />
       )}
+      </div>
     </ToastProvider>
   );
 }

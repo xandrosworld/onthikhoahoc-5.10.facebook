@@ -2,7 +2,7 @@
 /**
  * Plugin Name: SonClass — Học Toán & Luyện thi
  * Description: Khóa học, soạn đề LaTeX, thi trực tuyến và chấm điểm. Bản chuyển đổi từ ứng dụng Next.js.
- * Version: 1.0.2
+ * Version: 1.1.2
  * Requires PHP: 8.1
  * License: GPL-2.0-or-later
  */
@@ -43,7 +43,7 @@ function sc_install() {
         KEY status_deadline (status,deadline)
     ) ENGINE=InnoDB $charset;");
     add_option('sc_settings', ['siteName'=>'SonClass','tagline'=>'Học Toán & Luyện thi','hotline'=>'','email'=>'','address'=>'','openHours'=>'','facebook'=>'','zalo'=>'']);
-    update_option('sc_version', '1.0.2', false);
+    update_option('sc_version', '1.1.2', false);
     // Freeze the legacy boundary once. New SonClass uploads are never part of cleanup.
     add_option('sc_legacy_post_boundary', (int)$wpdb->get_var("SELECT MAX(ID) FROM {$wpdb->posts}"));
 }
@@ -67,6 +67,6 @@ add_action('template_redirect', function() {
     $asset = plugins_url('assets/', SONCLASS_FILE);
     $settings = get_option('sc_settings', []);
     $boot = ['api'=>rest_url('sonclass/v1/'),'nonce'=>wp_create_nonce('wp_rest'),'user'=>sc_current_user(),'settings'=>$settings,'assets'=>$asset,'preview'=>$preview,'live'=>(bool)get_option('sc_live'),'loginUrl'=>wp_login_url(),'resetUrl'=>wp_lostpassword_url()];
-    ?><!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#22308f"><title><?php echo esc_html($settings['siteName'] ?? 'SonClass'); ?> — Học Toán & Luyện thi</title><meta name="description" content="Học Toán 10, 11, 12, luyện đề trực tuyến và xem lời giải từng câu."><link rel="stylesheet" href="<?php echo esc_url($asset . 'app.css?v=1.0.2'); ?>"></head><body><div id="root"></div><noscript>Vui lòng bật JavaScript để sử dụng hệ thống luyện thi.</noscript><script>window.SONCLASS=<?php echo wp_json_encode($boot, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>;</script><script src="<?php echo esc_url($asset . 'app.js?v=1.0.2'); ?>" defer></script></body></html><?php
+    ?><!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#22308f"><title><?php echo esc_html($settings['siteName'] ?? 'SonClass'); ?> — Học Toán & Luyện thi</title><meta name="description" content="Học Toán 10, 11, 12, luyện đề trực tuyến và xem lời giải từng câu."><link rel="stylesheet" href="<?php echo esc_url($asset . 'app.css?v=1.1.2'); ?>"></head><body><div id="root"></div><noscript>Vui lòng bật JavaScript để sử dụng hệ thống luyện thi.</noscript><script>window.SONCLASS=<?php echo wp_json_encode($boot, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>;</script><script src="<?php echo esc_url($asset . 'app.js?v=1.1.2'); ?>" defer></script></body></html><?php
     exit;
 }, -100);

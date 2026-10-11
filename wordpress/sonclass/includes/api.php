@@ -170,6 +170,22 @@ function sc_dispatch($r) {
         if ($method==='GET') return ['settings'=>get_option('sc_settings',[]),'live'=>(bool)get_option('sc_live')];
         if ($method==='POST') { $s=get_option('sc_settings',[]); foreach(array_keys($s) as $k) if(isset($p[$k])) $s[$k]=sanitize_text_field($p[$k]); update_option('sc_settings',$s,false); return ['ok'=>true]; }
     }
+    if ($method==='POST' && preg_match('#^admin/attempts/([a-zA-Z0-9-]+)/grade$#D',$path,$m)) {
+        $wpdb->query('START TRANSACTION');
+        try {
+            $row=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sc_attempts WHERE id=%s FOR UPDATE",$m[1]),ARRAY_A);
+            if(!$row || $row['status']==='IN_PROGRESS') { $wpdb->query('ROLLBACK'); return sc_fail('Chỉ chấm bài đã nộp.',409); }
+            $old=json_decode($row['result'],true); $revision=(int)($old['gradingRevision'] ?? 0);
+            if(($p['revision'] ?? null)!==$revision) { $wpdb->query('ROLLBACK'); return sc_fail('Bài đã được chấm ở phiên khác. Tải lại trang trước khi lưu.',409); }
+            $snap=json_decode($row['snapshot'],true);
+            $marks=sc_clean_marks($snap['sections'],$p['marks'] ?? [],get_current_user_id());
+            $marks=array_merge($old['manualGrades'] ?? [],$marks);
+            $result=sc_grade($snap['sections'],json_decode($row['answers'],true) ?: [],$old['durationSec'],$marks);
+            $result['gradingRevision']=$revision+1;
+            if($wpdb->update($wpdb->prefix.'sc_attempts',['result'=>wp_json_encode($result)],['id'=>$row['id']])===false) throw new RuntimeException('Grade save failed');
+            $wpdb->query('COMMIT'); return ['ok'=>true];
+        } catch(Throwable $e) { $wpdb->query('ROLLBACK'); throw $e; }
+    }
     if ($method==='GET' && $path==='admin/attempts') return sc_attempt_list(true);
     if ($method==='GET' && $path==='admin/students') {
         $users=get_users(['meta_key'=>'sc_member','meta_value'=>'1','number'=>1000,'orderby'=>'registered','order'=>'DESC']);

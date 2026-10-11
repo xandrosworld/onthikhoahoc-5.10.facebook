@@ -1,11 +1,12 @@
-export const EXAM_TYPES = ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'SHORT_ANSWER'];
+export const EXAM_TYPES = ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'SHORT_ANSWER', 'ESSAY'];
 export const EXAM_TEMPLATES = [
   { id: 'MC', name: 'Mẫu 1', description: 'Trắc nghiệm A, B, C, D', types: EXAM_TYPES.slice(0, 1) },
   { id: 'MC_TF', name: 'Mẫu 2', description: 'A, B, C, D + Đúng / Sai', types: EXAM_TYPES.slice(0, 2) },
-  { id: 'FULL', name: 'Mẫu 3', description: 'A, B, C, D + Đúng / Sai + Trả lời ngắn', types: EXAM_TYPES },
+  { id: 'FULL', name: 'Mẫu 3', description: 'A, B, C, D + Đúng / Sai + Trả lời ngắn', types: EXAM_TYPES.slice(0, 3) },
+  { id: 'FULL_ESSAY', name: 'Mẫu 4', description: 'A, B, C, D + Đúng / Sai + Trả lời ngắn + Tự luận', types: EXAM_TYPES },
 ];
-export const DEFAULT_POINTS = { MULTIPLE_CHOICE: 0.25, TRUE_FALSE: 1, SHORT_ANSWER: 0.5 };
-export const SECTION_WEIGHT = { MULTIPLE_CHOICE: 3, TRUE_FALSE: 4, SHORT_ANSWER: 3 };
+export const DEFAULT_POINTS = { MULTIPLE_CHOICE: 0.25, TRUE_FALSE: 1, SHORT_ANSWER: 0.5, ESSAY: 1 };
+export const SECTION_WEIGHT = { MULTIPLE_CHOICE: 3, TRUE_FALSE: 4, SHORT_ANSWER: 3, ESSAY: 3 };
 export const templateTypes = template => (EXAM_TEMPLATES.find(t => t.id === template) || EXAM_TEMPLATES[2]).types;
 export const validPoints = value => value !== '' && value !== null && value !== undefined && Number.isFinite(Number(value)) && Number(value) > 0 && Number(value) <= 100;
 export const formatPoints = value => Number(value || 0).toLocaleString('vi-VN', { maximumFractionDigits: 4 });
