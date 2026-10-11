@@ -512,7 +512,7 @@ function ExamIntro({ exam }) {
       <h1>{exam.title}</h1>
       <p>{exam.description}</p>
       <p>
-        Khối {exam.grade} · {exam.durationMinutes} phút
+        Khối {exam.grade}. Thời gian: {exam.durationMinutes} phút
       </p>
       <p>
         Tổng điểm: {exam.sections.reduce((a, s) => a + s.maxPoints, 0)} · Số
