@@ -9,3 +9,7 @@ uploads
 .netlify
 *.db-wal
 *.db-shm
+wordpress/node_modules/
+wordpress/.runtime/
+wordpress/dist/
+wordpress/sonclass/assets/

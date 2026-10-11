@@ -1,0 +1,8 @@
+{
+  "preferredVersions": { "php": "8.3", "wp": "latest" },
+  "steps": [
+    { "step": "defineWpConfigConsts", "consts": { "DISABLE_WP_CRON": true } },
+    { "step": "activatePlugin", "pluginPath": "sonclass/sonclass.php" },
+    { "step": "runPHP", "code": "<?php require '/wordpress/wp-load.php'; update_option('sc_live',1);" }
+  ]
+}

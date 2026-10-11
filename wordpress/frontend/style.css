@@ -1,0 +1,124 @@
+@import "@fontsource/be-vietnam-pro/400.css";
+@import "@fontsource/be-vietnam-pro/500.css";
+@import "@fontsource/be-vietnam-pro/600.css";
+@import "@fontsource/be-vietnam-pro/700.css";
+@import "../../src/app/globals.css";
+@import "../../src/app/refinement.css";
+@import "../../src/app/motion.css";
+@import "../../src/app/(public)/public.css";
+@import "../../src/app/(public)/academy.css";
+@import "../../node_modules/katex/dist/katex.min.css";
+body {
+  font-family:
+    "Be Vietnam Pro",
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+.sc-page {
+  max-width: 1200px;
+  margin: auto;
+  padding: 40px 24px;
+  min-height: 65vh;
+}
+.sc-form {
+  max-width: 680px;
+  margin: auto;
+}
+.sc-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.sc-form .field {
+  margin-bottom: 20px;
+}
+.sc-form textarea {
+  min-height: 110px;
+}
+.sc-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0;
+}
+.sc-controls > * {
+  max-width: 280px;
+}
+.sc-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--n-500);
+}
+.sc-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.sc-table td,
+.sc-table th {
+  text-align: left;
+  padding: 14px;
+  border-bottom: 1px solid var(--n-200);
+}
+.sc-scroll {
+  overflow: auto;
+}
+.sc-error {
+  padding: 16px;
+  background: #fff1f2;
+  color: #9f1239;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+.sc-editor-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+}
+.sc-editor-layout textarea {
+  min-height: 200px;
+}
+.sc-preview-notice {
+  padding: 8px;
+  text-align: center;
+  background: #fff7d6;
+  color: #704400;
+  font-size: 13px;
+}
+.sc-details {
+  max-width: 820px;
+}
+.sc-details img {
+  max-width: 100%;
+}
+.sc-details h1 {
+  margin: 20px 0;
+}
+.sc-footer {
+  padding: 40px 24px;
+  border-top: 1px solid var(--n-200);
+  background: var(--n-50);
+}
+.sc-footer .container {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.sc-alert {
+  background: var(--primary-50);
+  padding: 20px;
+  border-radius: 10px;
+  margin: 20px 0;
+}
+@media (max-width: 760px) {
+  .sc-editor-layout {
+    grid-template-columns: 1fr;
+  }
+  .sc-page {
+    padding: 24px 16px;
+  }
+  .sc-table td {
+    padding: 10px;
+  }
+}

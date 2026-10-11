@@ -13,7 +13,7 @@ const NAV = [
   { href: '/dang-ky-khoa-hoc', label: 'Đăng ký học' },
 ];
 
-export default function SiteHeader({ user, siteName, tagline, logoutAction }) {
+export default function SiteHeader({ user, siteName, tagline, logoutAction, onLogout }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const menuButton = useRef(null);
@@ -53,7 +53,7 @@ export default function SiteHeader({ user, siteName, tagline, logoutAction }) {
         {user ? (
           <>
             <Link href={dash} className="btn btn-primary btn-block" onClick={() => setOpen(false)}>Vào trang {user.role === 'ADMIN' ? 'quản trị' : 'học sinh'}</Link>
-            <form action={logoutAction}><button className="btn btn-block" style={{ marginTop: 10 }}>Đăng xuất</button></form>
+            <form action={logoutAction} onSubmit={onLogout ? (event) => { event.preventDefault(); onLogout(); } : undefined}><button className="btn btn-block" style={{ marginTop: 10 }}>Đăng xuất</button></form>
           </>
         ) : (
           <>

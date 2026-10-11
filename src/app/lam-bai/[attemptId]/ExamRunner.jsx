@@ -37,11 +37,13 @@ export default function ExamRunner({ attemptId, title, studentName, sections, in
   const timer = useRef(null);
   const offset = useRef(serverNow - Date.now());
   const submittingRef = useRef(false);
+  const saveQueue = useRef(Promise.resolve());
   const storeKey = `attempt-answers:${attemptId}`;
   const idxKey = `attempt-index:${attemptId}`;
 
   /* ---------- Lưu đáp án ---------- */
-  const flush = useCallback(async () => {
+  const flush = useCallback(() => {
+    const save = async () => {
     if (!dirty.current.size) return true;
     const keys = [...dirty.current];
     const payload = {};
@@ -59,6 +61,10 @@ export default function ExamRunner({ attemptId, title, studentName, sections, in
       setSaveState('error');
       return false;
     }
+    };
+    // Serialize writes so an older request cannot overwrite a newer answer.
+    saveQueue.current = saveQueue.current.then(save, save);
+    return saveQueue.current;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attemptId]);
 
@@ -68,6 +74,7 @@ export default function ExamRunner({ attemptId, title, studentName, sections, in
   }, [flush]);
 
   const setAnswer = useCallback((key, value) => {
+    if (submittingRef.current) return;
     const next = { ...answersRef.current };
     if (value === '' || value == null) delete next[key]; else next[key] = value;
     answersRef.current = next;
@@ -107,7 +114,11 @@ export default function ExamRunner({ attemptId, title, studentName, sections, in
     setSheetOpen(false);
     clearTimeout(timer.current);
     for (let attempt = 0; attempt < (auto ? 20 : 3); attempt++) {
-      await flush();
+      const saved = await flush();
+      if (!saved && !auto) {
+        await new Promise((r) => setTimeout(r, 2500));
+        continue;
+      }
       try {
         const res = await fetch(`/api/attempts/${attemptId}/submit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ auto }) });
         const data = await res.json().catch(() => ({}));
