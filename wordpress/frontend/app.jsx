@@ -158,7 +158,7 @@ function Shell({ admin, children }) {
         className={`sidebar ${admin ? "admin" : ""} ${open ? "open" : ""}`}
       >
         <Link href="/" className="brand">
-          <span className="brand-mark">π</span>
+          <img className="sc-brand-logo" src={boot.assets + "images/sonclass-logo.png"} alt="" />
           <span>
             {boot.settings.siteName}
             <small>{admin ? "Quản trị" : "Học sinh"}</small>
@@ -704,6 +704,12 @@ function AdminList({ kind }) {
           </Link>
         )}
       </div>
+      {(kind === "students" || kind === "registrations") && <div className="card card-pad mb-4">
+        <h3>Đưa học sinh vào danh sách</h3>
+        <p>Phiếu đăng ký khóa học dùng để tiếp nhận và theo dõi tư vấn. Chọn “Đã ghi danh” chỉ cập nhật trạng thái phiếu, chưa tạo tài khoản học sinh.</p>
+        <ol><li>Gửi học sinh đường dẫn <a href={href('/dang-ky')} target="_blank" rel="noopener noreferrer">sonclass.com/dang-ky</a>.</li><li>Học sinh điền thông tin và tự đặt mật khẩu để tạo tài khoản.</li><li>Tải lại mục Học sinh để thấy tài khoản mới; học sinh có thể đăng nhập, luyện thi và xem kết quả.</li></ol>
+        <p className="small muted">Nếu đã có tài khoản, học sinh chỉ cần đăng nhập, không đăng ký lại.</p>
+      </div>}
       <ErrorBox error={error || actionError} />
       <div className="sc-controls">
         <input
@@ -760,7 +766,7 @@ function AdminList({ kind }) {
       {!data ? (
         <Loading />
       ) : !data.length ? (
-        <Empty />
+        <Empty>{kind === "students" ? "Chưa có học sinh tạo tài khoản. Gửi đường dẫn đăng ký theo hướng dẫn phía trên." : undefined}</Empty>
       ) : (
         <div className="card sc-scroll">
           <table className="sc-table">
@@ -1454,6 +1460,7 @@ function App() {
       {!privatePage && (
         <SiteHeader
           user={boot.user}
+          logoUrl={boot.assets + "images/sonclass-logo.png"}
           siteName={boot.settings.siteName}
           tagline={boot.settings.tagline}
           onLogout={logout}

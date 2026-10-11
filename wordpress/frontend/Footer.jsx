@@ -1,4 +1,4 @@
-import { Link } from './runtime';
+import { Link, boot } from './runtime';
 import Icon from '../../src/components/Icon';
 export default function Footer({s}) { return (
       <footer className="site-footer">
@@ -6,7 +6,7 @@ export default function Footer({s}) { return (
           <div className="footer-grid">
             <div>
               <div className="brand" style={{ marginBottom: 16 }}>
-                <span className="brand-mark">π</span>
+                <img className="sc-brand-logo" src={boot.assets + "images/sonclass-logo.png"} alt="" />
                 <span>{s.siteName}</span>
               </div>
               <p style={{ maxWidth: 320, fontSize: '.95rem' }}>Học Toán bài bản, luyện đề đúng cấu trúc, chấm điểm minh bạch. Đồng hành cùng học sinh THPT trên con đường chinh phục kỳ thi quan trọng.</p>
@@ -27,7 +27,7 @@ export default function Footer({s}) { return (
             <div>
               <h3 className="footer-title">Liên hệ</h3>
               {!s.hotline && !s.email && !s.address && <Link href="/dang-ky-khoa-hoc">Gửi yêu cầu tư vấn</Link>}
-              {s.hotline && (<span style={{ display: 'flex', gap: 10, padding: '4px 0', fontSize: '.95rem' }}><Icon name="phone" size={18} />{s.hotline}</span>)}
+              {s.hotline && (<span style={{ display: 'flex', gap: 10, padding: '4px 0', fontSize: '.95rem' }}><Icon name="phone" size={18} /><a href={"tel:" + s.hotline.replace(/[^+0-9]/g, "")} style={{padding: 0}}>{s.hotline}</a></span>)}
               {s.email && (<span style={{ display: 'flex', gap: 10, padding: '4px 0', fontSize: '.95rem' }}><Icon name="mail" size={18} />{s.email}</span>)}
               {s.address && (<span style={{ display: 'flex', gap: 10, padding: '4px 0', fontSize: '.95rem' }}><Icon name="pin" size={18} />{s.address}</span>)}
               {s.openHours && (<span style={{ display: 'flex', gap: 10, padding: '4px 0', fontSize: '.95rem' }}><Icon name="clock" size={18} />{s.openHours}</span>)}

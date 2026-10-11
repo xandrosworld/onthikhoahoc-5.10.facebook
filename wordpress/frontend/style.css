@@ -129,3 +129,8 @@ body {
 .site-footer .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.2fr; gap: 36px; }
 @media(max-width:900px) { .site-footer .footer-grid {grid-template-columns: 1fr 1fr;} }
 @media(max-width:560px) { .site-footer .footer-grid {grid-template-columns: 1fr;} .site-footer .footer-bottom {gap:12px; flex-wrap:wrap;} }
+
+.sc-brand-logo { display: block; width: 72px; height: 72px; object-fit: contain; flex-shrink: 0; }
+.sidebar .sc-brand-logo { width: 56px; height: 56px; }
+.site-footer .sc-brand-logo { width: 88px; height: 88px; }
+@media(max-width:700px) { .site-header .sc-brand-logo { width: 56px; height: 56px; } }

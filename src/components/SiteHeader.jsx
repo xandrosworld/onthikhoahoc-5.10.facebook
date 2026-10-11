@@ -13,7 +13,7 @@ const NAV = [
   { href: '/dang-ky-khoa-hoc', label: 'Đăng ký học' },
 ];
 
-export default function SiteHeader({ user, siteName, tagline, logoutAction, onLogout }) {
+export default function SiteHeader({ user, siteName, tagline, logoutAction, onLogout, logoUrl }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const menuButton = useRef(null);
@@ -30,7 +30,7 @@ export default function SiteHeader({ user, siteName, tagline, logoutAction, onLo
     <header className="site-header">
       <div className="container inner">
         <Link href="/" className="brand" aria-label={`${siteName} ${tagline} - Trang chủ`}>
-          <span className="brand-mark" aria-hidden="true">π</span>
+          <span aria-hidden="true">{logoUrl ? <img className="sc-brand-logo" src={logoUrl} alt="" /> : <span className="brand-mark">π</span>}</span>
           <span>{siteName}<small>{tagline}</small></span>
         </Link>
         <nav className="nav" aria-label="Điều hướng chính">
