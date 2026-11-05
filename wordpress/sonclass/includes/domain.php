@@ -5,7 +5,7 @@ function sc_points($value) { return is_numeric($value) && is_finite((float)$valu
 function sc_validate_exam($e) {
     if (!in_array($e['template'] ?? '', ['MC','MC_TF','FULL','FULL_ESSAY'], true)) return 'Chọn mẫu đề hợp lệ.';
     if (trim($e['title'] ?? '') === '' || strlen($e['title']) > 500) return 'Nhập tên đề (tối đa 500 ký tự).';
-    if (!in_array((string)($e['grade'] ?? ''), ['10','11','12'], true)) return 'Khối lớp không hợp lệ.';
+    if (!in_array((string)($e['grade'] ?? ''), ['THCS','10','11','12'], true)) return 'Khối lớp không hợp lệ.';
     if (!is_numeric($e['durationMinutes'] ?? null) || $e['durationMinutes'] < 1 || $e['durationMinutes'] > 300 || floor($e['durationMinutes']) != $e['durationMinutes']) return 'Thời gian từ 1 đến 300 phút.';
     $count = 0;
     foreach (sc_types($e['template']) as $type) {

@@ -62,6 +62,14 @@ async function call(code) {
   return JSON.parse(r.text);
 }
 const b64 = (v) => Buffer.from(JSON.stringify(v)).toString("base64");
+for (const grade of ["THCS", "10", "11", "12"]) {
+  const error = await call(`echo json_encode(sc_validate_exam(json_decode(base64_decode('${b64({...exam, grade})}'),true)));`);
+  assert.ok(!error, `${grade} should be accepted: ${error}`);
+}
+for (const grade of ["6", "7", "8", "9", "INVALID"]) {
+  const error = await call(`echo json_encode(sc_validate_exam(json_decode(base64_decode('${b64({...exam, grade})}'),true)));`);
+  assert.ok(error, `${grade} is not a supported separate grade`);
+}
 const sections = await call(
   `$e=json_decode(base64_decode('${b64(exam)}'),true); if(sc_validate_exam($e)) throw new Exception(sc_validate_exam($e)); echo json_encode(sc_snapshot($e));`,
 );
