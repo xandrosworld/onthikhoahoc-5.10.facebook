@@ -265,7 +265,7 @@ function Auth({ register }) {
             </Field>
             <Field label="Khối lớp">
               <select name="grade" className="select">
-                <option>THCS</option>
+                <option>6</option><option>7</option><option>8</option><option>9</option>
                 <option>10</option>
                 <option>11</option>
                 <option>12</option>
@@ -337,7 +337,7 @@ function Catalog({ kind, catalog }) {
             onChange={(e) => setGrade(e.target.value)}
           >
             <option value="">Tất cả khối lớp</option>
-            {["THCS", "10", "11", "12"].map((g) => (
+            {["6", "7", "8", "9", "10", "11", "12"].map((g) => (
               <option key={g}>{g}</option>
             ))}
           </select>
@@ -473,7 +473,7 @@ function Registration({ catalog }) {
             ))}
             <Field label="Lớp hiện tại">
               <select name="currentGrade" className="select">
-                {["THCS", "10", "11", "12"].map((g) => (
+                {["6", "7", "8", "9", "10", "11", "12"].map((g) => (
                   <option key={g}>{g}</option>
                 ))}
               </select>
@@ -1082,7 +1082,7 @@ function ContentEditor({ kind, id }) {
                       setData({ ...data, grade: e.target.value })
                     }
                   >
-                    {["THCS", "10", "11", "12"].map((g) => (
+                    {["6", "7", "8", "9", "10", "11", "12"].map((g) => (
                       <option key={g}>{g}</option>
                     ))}
                   </select>
